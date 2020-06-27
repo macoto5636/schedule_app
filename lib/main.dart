@@ -41,7 +41,8 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.calendar_today),
+            icon: const Icon(Icons.view_carousel),
+            iconSize: 35,
             tooltip: 'change calendar',
             onPressed: (){},
           )
@@ -55,12 +56,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
-      FloatingActionButton(child: Icon(Icons.add, size: 40,), onPressed: () {}),
+      Container(
+          margin: EdgeInsets.only(top: 50.0),
+          child:FloatingActionButton(
+          child: Icon(Icons.add, size: 40.0,), onPressed: () {})),
 
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.build),
+            icon: Icon(Icons.settings,size: 35,),
             title: Text('設定'),
           ),
           BottomNavigationBarItem(
@@ -68,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
             title: Text(''),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
+            icon: Icon(Icons.calendar_today,size: 35,),
             title: Text('切替')
           ),
         ],
