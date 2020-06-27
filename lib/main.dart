@@ -39,6 +39,13 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       appBar: AppBar(
         title: Text(widget.title),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.calendar_today),
+            tooltip: 'change calendar',
+            onPressed: (){},
+          )
+        ],
       ),
       body: Center(
         child: Column(
