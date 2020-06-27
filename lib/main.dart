@@ -56,7 +56,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
-      FloatingActionButton(child: Icon(Icons.add, size: 40,), onPressed: () {}),
+      Container(
+          margin: EdgeInsets.only(top: 50.0),
+          child:FloatingActionButton(
+          child: Icon(Icons.add, size: 40.0,), onPressed: () {})),
 
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
