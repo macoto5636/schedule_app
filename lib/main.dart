@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/expantion_drawer.dart';
+
+//Git Test
 
 void main() {
   runApp(MyApp());
@@ -10,6 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'schedule_app',
       theme: ThemeData(
+        primaryColor: Colors.blue,
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
@@ -36,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: Drawer(
         //拡張機能一覧
+          child: ExpantionDrawer()
       ),
       appBar: AppBar(
         title: Text(widget.title),
