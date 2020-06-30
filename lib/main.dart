@@ -13,6 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'schedule_app',
       theme: ThemeData(
+        primaryColor: Colors.blue,
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
@@ -39,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: Drawer(
         //拡張機能一覧
+          child: ExpantionDrawer()
       ),
       appBar: AppBar(
         title: Text(widget.title),
@@ -51,7 +53,6 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      drawer: Drawer(child: ExpantionDrawer()),
       body: Center(
         child: Column(
 

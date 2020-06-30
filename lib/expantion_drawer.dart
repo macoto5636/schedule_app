@@ -9,9 +9,15 @@ class ExpantionDrawer extends StatelessWidget {
           Container(
             height: 80,
             child: DrawerHeader(
-              child: Text('拡張機能',style: TextStyle(fontSize: 25),),
+              child: Text(
+                '拡張機能',
+                  style: TextStyle(
+                      fontSize: 25.0,
+                      color:Colors.white
+                  ),
+              ),
               decoration: BoxDecoration(
-                color: Colors.black12,
+                color: Theme.of(context).primaryColor,
               ),
             ),
           ),
@@ -24,6 +30,7 @@ class ExpantionDrawer extends StatelessWidget {
   }
 }
 
+//仮で作ってる
 class Sample extends StatelessWidget {
   final bool flag = true;
   @override
