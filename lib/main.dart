@@ -48,11 +48,7 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: Center(
-        child: Column(
-
-        ),
-      ),
+      body: _calendarMonth(),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
@@ -92,4 +88,38 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  //カレンダー
+  Widget _calendarMonth(){
+    return Center(
+      child:Column(children: <Widget>[
+        Container(
+          child: Table(
+            border: TableBorder.all(),
+            children: [
+              TableRow( children: [
+                Column(children:[
+                  Icon(Icons.account_box),
+                  Text('My Account')
+                ]),
+                Column(children:[
+                  Icon(Icons.settings),
+                  Text('Settings')
+                ]),
+                Column(children:[
+                  Icon(Icons.lightbulb_outline,),
+                  Text('Ideas'),
+                ]),
+              ]),
+              TableRow( children: [
+                Icon(Icons.cake),
+                Icon(Icons.voice_chat),
+                Icon(Icons.add_location),
+
+              ]),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
 }
