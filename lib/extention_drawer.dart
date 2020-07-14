@@ -1,9 +1,36 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/auth/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'extension_add_page.dart';
 
-class ExpantionDrawer extends StatelessWidget {
+class ExtentionDrawer extends StatefulWidget {
+  @override
+  _ExtentionDrawerState createState() => _ExtentionDrawerState();
+}
+
+class _ExtentionDrawerState extends State<ExtentionDrawer> {
+  String name = '';
+
+  @override
+  void initState(){
+    _loadUserData();
+    super.initState();
+  }
+
+  _loadUserData() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var user = jsonDecode(localStorage.getString('user'));
+    if(user != null) {
+      setState(() {
+        name = user['name'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -34,7 +61,21 @@ class ExpantionDrawer extends StatelessWidget {
               ),
             ),
           ),
+          Container(
+            child: Center(
+                child: Text('$name  さん')
+            ),
+          ),
           ExpantionListView(),
+          ListTile(
+            leading: Icon(Icons.group),
+            title: Text('ログイン / 会員登録'),
+            onTap: (){
+              moveLoginForm((context));
+            },
+
+          ),
+
 //          ListTile(
 //            title: Text("日記"),
 //            trailing: Icon(Icons.arrow_forward_ios),
@@ -82,7 +123,7 @@ class _ExpantionListViewState extends State<ExpantionListView> {
     }else{
       return
         Padding(
-          padding: const EdgeInsets.only(top: 100),
+          padding: const EdgeInsets.only(top: 100,bottom: 100),
           child: Container(
             child:Center(
               child: Column(
@@ -123,4 +164,17 @@ moveExtentionAddPage(BuildContext context){
       ),
   );
 }
+
+//ログインページへ移動
+moveLoginForm(BuildContext context){
+  Navigator.of(context).pop();
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) {
+        return LoginForm();
+      },
+    ),
+  );
+}
+
 
