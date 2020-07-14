@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/expantion_drawer.dart';
 import 'package:scheduleapp/calendar/calendarview.dart';
+
 //Git Test
 
 void main() {
@@ -53,15 +54,18 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: CalendarView(),
+      body: Center(
+        child: Column(
+
+        ),
+      ),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
       Container(
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
-          child: Icon(Icons.add, size: 40.0,),
-              onPressed: () {})),
+          child: Icon(Icons.add, size: 40.0,), onPressed: () {})),
 
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
@@ -81,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentTabIndex,
         onTap: _onItemTapped,
-      ),
+      ),// This trailing comma makes auto-formatting nicer for build methods.
     );
   }
   //BottomNavigationBarタップ時
@@ -93,4 +97,5 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
   }
+
 }
