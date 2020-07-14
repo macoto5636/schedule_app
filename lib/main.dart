@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:scheduleapp/extention_drawer.dart';
+import 'package:scheduleapp/expantion_drawer.dart';
+import 'package:scheduleapp/calendar/calendarview.dart';
 
 //Git Test
 
@@ -53,11 +54,7 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: Center(
-        child: Column(
-
-        ),
-      ),
+      body: CalendarView(),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
