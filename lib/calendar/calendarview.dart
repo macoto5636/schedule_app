@@ -15,33 +15,19 @@ class CalendarView extends StatefulWidget{
 
 class _CalendarState extends State<CalendarView>{
 
-  int _currentYear;  //現在の年
-  int _currentMonth;  //現在の月
-  int _currentDay;   //現在の日
-  int _currentDays;  //現在の月の日数
-  int _firstWeek;   //当月の最初の曜日
-  int _lastWeek;    //当月の最終日の曜日
-  int _previousDays; //前月の日数
-  int _nextDays;     //次月の日数
+  DateTime _currentDate; //今日の日付
+  int _currentMonth; //今月
 
-  int tempDay = 1; //test
+  DateTime _selectDate; //選択された日付
 
-  int maxYear; //
-  int minYear;
+  List<List<DateTime>> _dates = []; //_currentDaysのあつまり
 
   //最初の曜日(初期値は月曜日)
   int weekStart = 1;
 
-  var titleText;  //タイトル文字
+  String headerText;  //タイトル文字
 
-  PageController pageController = PageController(initialPage: 0);
-
-  //最初
-  @override
-  initState(){
-    super.initState();
-    getTime();
-  }
+  PageController pageController = PageController(initialPage: 1);
 
   //曜日定義
   final dayOfWeek = [
@@ -54,18 +40,30 @@ class _CalendarState extends State<CalendarView>{
     DayOfWeek(7, "日"),
   ];
 
+  //最初
+  @override
+  initState(){
+    super.initState();
+    _currentDate = DateTime.now();
+    _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
+    _currentMonth = _currentDate.month;
 
-  Widget getPageWidget(){
-    return Container(
-      child: Table(
-        border: TableBorder.all(),
-        children: _calendarBodyWidgets(),
-      ) ,
-    );
+    headerText = _currentDate.year.toString() + "年" + _currentDate.month.toString() + "月";
+
+    DateTime previousMonth = DateTime(_currentDate.year, _currentDate.month, 0);
+    DateTime nextMonth = DateTime(_currentDate.year, _currentDate.month+2, 0);
+
+    //3か月分だけ取得
+    print("前月" +previousMonth.toString());
+    print("次月" + nextMonth.toString());
+    _dates.add(_getTime(previousMonth.year,previousMonth.month));
+    _dates.add(_getTime(_currentDate.year, _currentDate.month));
+    _dates.add(_getTime(nextMonth.year, nextMonth.month));
+
   }
 
   //曜日によって色を変える
-  Widget _changeText(int id, String name){
+  Widget _changeText(int id, String name, int flg){
     Widget text;
     if(id == 6){
       text = Text(name , style: TextStyle(color: Colors.blue));
@@ -74,45 +72,67 @@ class _CalendarState extends State<CalendarView>{
     }else{
       text = Text(name);
     }
+
+    if(flg == 1){
+      text = Text(name, style: TextStyle(color: Colors.grey));
+    }
+
     return text;
   }
 
   //日付取得
-  void getTime(){
-    //今日の日付取得
-    final now = DateTime.now();
+  List<DateTime> _getTime(int year, int month){
 
-    _currentYear = now.year;
-    _currentMonth = now.month;
-    _currentDay = now.day;
+    List<DateTime> days = [];
 
-    //当月の日数取得
-    _currentDays = DateTime(_currentYear, _currentMonth + 1, 0).day;
-    //当月の最初の曜日取得
-    _firstWeek = DateTime(_currentYear, _currentMonth, 1).weekday;
-    //当月の最後の曜日取得
-    _lastWeek = DateTime(_currentYear, _currentMonth, _currentDays).weekday;
+    DateTime firstDay = DateTime(year, month, 1);
+    DateTime lastDay = DateTime(year, month+1, 0);
 
     //前月の日付の取得
-    _previousDays = DateTime(_currentYear, _currentMonth, 0).day;
-    //次月の日付の取得
-    _nextDays = DateTime(_currentYear, _currentMonth + 2, 0).day;
+    int _previousDays = DateTime(year, month, 0).day;
+
+    //1か月 + 前月、先月分のリスト
+    for(int i=1; i <= lastDay.day; i++){
+      //最初の日
+      if(i == 1){
+        for(int j=1; j <= firstDay.weekday-1; j++){
+          if(month == 1){
+            days.add(DateTime(year-1, 12, _previousDays-firstDay.weekday + j + 1));
+          }else{
+            days.add(DateTime(year, month-1, _previousDays-firstDay.weekday + j + 1));
+          }
+          print(days[days.length-1]);
+        }
+      }
+      days.add(DateTime(year, month, i));
+      print(days[days.length-1]);
+
+      //最後の日
+      if(i == lastDay.day){
+        for(int j=1; j <= 7 - lastDay.weekday; j++){
+          if(month == 12){
+            days.add(DateTime(year+1, 1, j));
+          }else{
+            days.add(DateTime(year, month+1 , j));
+          }
+          print(days[days.length-1]);
+        }
+      }
+      print((days.length-1 % 7).toString());
+    }
+    return days;
   }
-
-  //PageView
-
-
 
   //header部分(< 2020年3月 >　の部分)
   // 前の月へ
   Widget _leftButton() => IconButton(
-    onPressed: (){},
+    onPressed: (){pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
     icon: const Icon(Icons.chevron_left),
   );
 
   //次の月へ
   Widget _rightButton() => IconButton(
-    onPressed: (){},
+    onPressed: (){pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
     icon: const Icon(Icons.chevron_right),
   );
 
@@ -137,7 +157,7 @@ class _CalendarState extends State<CalendarView>{
 
     weekList.forEach((element) {
       //曜日によって文字色を変える
-      Widget text = _changeText(element.id, element.name);
+      Widget text = _changeText(element.id, element.name, 0);
       //要素追加
       weekWidget.add(
           Column(children: <Widget>[
@@ -149,110 +169,65 @@ class _CalendarState extends State<CalendarView>{
   }
 
   //１日
-  Widget _dayWidget(int day, int youbi){
-    Widget text = _changeText(youbi, day.toString());
-    Widget dayWidget;
-    dayWidget =
-        Column(children: <Widget>[
-          Container(
-            height: 90,
-            child: text,
-          )
-        ]);
-    return dayWidget;
+  Widget _buildTableCell(DateTime date, row){
+    final Size size = MediaQuery.of(context).size;
+    return Column(children: <Widget>[
+      Container(
+          height: (size.height - 230) / row,
+          child: _buildCell(date)
+      )
+    ]);
+  }
+
+  //日にち
+  Widget _buildCell(DateTime date){
+    int flg = 0;
+    if(date.month != _currentMonth){
+      flg = 1;
+    }
+
+    Widget text = _changeText(date.weekday, date.day.toString(), flg);
+    Widget text2 ;
+    //テスト
+    if(date == _currentDate){
+      text2 = Text("今日です" , style: TextStyle(color: Colors.blue));
+      return Column(children: <Widget>[
+        text,
+        text2
+      ],
+      );
+    }
+    return Column(children: <Widget>[
+      text,
+    ],
+    );
   }
 
   //週
-  List<Widget> _weekWidget(int startDay){
-    //getTime();
-    int day = startDay;
-    int youbi = 1;
-
-    var weekWidget = List<Widget>();
-    var weekRowWidget = List<TableRow>();
-    //最初の週の場合
-    if (day == 1) {
-      youbi = _firstWeek;
-      for (int i = 1; i <= 7; i++) {
-        if (i < youbi) {
-          weekWidget.add(
-            Column(children: <Widget>[
-              Text((_previousDays - youbi + i + 1).toString(),
-                  style: TextStyle(color: Colors.grey)),
-            ]),
-          );
-        } else {
-          weekWidget.add(
-              _dayWidget(day, youbi)
-          );
-          day++;
-          youbi++;
-        }
-      }
-      tempDay = day;
-    } else if (day + 7 > _currentDays) { //最後の週の場合
-      int nextDay = 1;
-      for (int i = 1; i <= 7; i++) {
-        if (i <= _lastWeek && day <= _currentDays) {
-          weekWidget.add(
-              _dayWidget(day, youbi)
-          );
-          day++;
-          youbi++;
-        } else {
-          weekWidget.add(
-            Column(children: <Widget>[
-              Text(nextDay.toString(),
-                  style: TextStyle(color: Colors.grey))
-              ,
-            ]),
-          );
-          nextDay++;
-        }
-      }
-      tempDay = day;
-    } else { //その他の週
-      for (int i = 1; i <= 7; i++) {
-        weekWidget.add(
-            _dayWidget(day, youbi)
-        );
-        day++;
-        youbi++;
-      }
-      tempDay = day;
-    }
-    weekRowWidget.add(
-      TableRow(
-        children: weekWidget,
-      ),
+  TableRow _buildTableRow(List<DateTime> days, int row){
+    return TableRow(
+      children: days.map((date) => _buildTableCell(date,row)).toList(),
     );
-    return weekWidget;
   }
 
-  //1週間分返している
-  List<TableRow> _calendarBodyWidgets(){
-    //getTime();
+  //月
+  Widget _buildTable(List<DateTime> days){
     try {
-      var weekRowWidget = List<TableRow>();
-      var weekWidget = List<Widget>();
-      while (tempDay < _currentDays) {
-        print(tempDay.toString() + "a");
-        weekWidget = _weekWidget(tempDay);
-        weekRowWidget.add(
-          TableRow(
-            children: weekWidget,
-          ),
-        );
-      }
-      return weekRowWidget;
-    }catch(e){
-      print(e);
-    }
-  }
+      final daysInWeek = 7;
+      final children = <TableRow>[];
+      int row = (days.length / 7).toInt();
 
-  //1か月分表示
-  Column _calendarMonthWidgets(){
-    return Column(
+      //その月取得
+      _currentMonth = days[10].month;
+
+      int x = 0;
+      while (x < days.length) {
+        children.add(
+            _buildTableRow(days.skip(x).take(daysInWeek).toList(), row));
+        x += daysInWeek;
+      }
+
+      return Column(
         children: <Widget>[
           Container(
             child: Table(
@@ -267,11 +242,50 @@ class _CalendarState extends State<CalendarView>{
           Expanded(
             child: Table(
               border: TableBorder.all(),
-              children: _calendarBodyWidgets(),
+              children: children,
             ),
           )
         ],
       );
+    }catch(e){
+      print(e);
+      return Container();
+    }
+  }
+
+  //List<List<DateTime>>からDateTimeを取り出す
+  DateTime getDateTime(int getList, int getDate){
+    List<DateTime> tempList = _dates[getList];
+    DateTime tempDate = tempList[getDate];
+    return tempDate;
+  }
+
+  //月切り替わったときの処理
+  void onPageChanged(pageId){
+    print("pageId:" + pageId.toString());
+    for(int i=0; i < _dates.length; i++){
+      print(i.toString() + ":" + _dates[i].toString());
+    }
+
+    if(pageId == _dates.length -1){
+      DateTime tempDate = getDateTime(_dates.length-1, 10);
+      setState((){
+        _dates.add(_getTime(tempDate.year, tempDate.month+1));
+      });
+    }
+
+    setState(() {
+      DateTime tempDate = getDateTime(pageId, 10);
+      headerText = tempDate.year.toString() + "年" + tempDate.month.toString() + "月";
+    });
+
+    if(pageId == 0){
+      DateTime tempDate = getDateTime(0, 10);
+      setState(() {
+        _dates.insert(0, _getTime(tempDate.year, tempDate.month-1));
+      });
+      pageController.jumpToPage(1);
+    }
   }
 
   @override
@@ -284,7 +298,7 @@ class _CalendarState extends State<CalendarView>{
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 _leftButton(),
-                Text("2020年7月", style: defaultHeaderTextStyle),
+                Text(headerText, style: defaultHeaderTextStyle),
                 _rightButton(),
               ],
             ),
@@ -292,12 +306,11 @@ class _CalendarState extends State<CalendarView>{
 
           Expanded(
             child:PageView(
+              onPageChanged: onPageChanged,
               controller: pageController,
-              children: <Widget>[
-                _calendarMonthWidgets(),
-                _calendarMonthWidgets(),
-                _calendarMonthWidgets(),
-              ]
+              children: List<Widget>.generate(_dates.length,(index){
+                return _buildTable(_dates[index]);
+              })
             ),
           ),
         ],
