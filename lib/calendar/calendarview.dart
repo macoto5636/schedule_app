@@ -94,15 +94,58 @@ class _CalendarState extends State<CalendarView>{
     //前月の日付の取得
     int _previousDays = DateTime(year, month, 0).day;
 
+    print((month-1).toString() + "月："+ _previousDays.toString());
+
+    //仮１
+    int test = 0;
+    switch(weekStart){
+      case 1: test = 0; break;
+      case 2: test = -2; break;
+      case 3: test = -4; break;
+      case 4: test = 1; break;
+      case 5: test = -1; break;
+      case 6: test = 4; break;
+      case 7: test = 2; break;
+    }
+
+    print("test = " + test.toString());
+
+    int firstWeekday = firstDay.weekday + (weekStart - 1) + test;
+    int lastWeekday = lastDay.weekday + (weekStart - 1) + test;
+
+    //くそ
+    if(firstWeekday > 7){
+      firstWeekday = firstWeekday -7;
+    }
+    if(firstWeekday > 7){
+      firstWeekday = firstWeekday -7;
+    }
+    if(firstWeekday < 1){
+      firstWeekday = firstWeekday + 7;
+    }
+    if(lastWeekday > 7) {
+      lastWeekday = lastWeekday - 7;
+    }
+    if(lastWeekday > 7) {
+      lastWeekday = lastWeekday - 7;
+    }
+    if(lastWeekday < 1){
+      lastWeekday = lastWeekday + 7;
+    }
+
+    print("firstWeekday : " + firstWeekday.toString());
+    print("lastWeekday : " + lastWeekday.toString() );
+
+
     //1か月 + 前月、先月分のリスト
     for(int i=1; i <= lastDay.day; i++){
       //最初の日
       if(i == 1){
-        for(int j=1; j <= firstDay.weekday-1; j++){
+        for(int j=1; j < firstWeekday; j++){
           if(month == 1){
-            days.add(DateTime(year-1, 12, _previousDays-firstDay.weekday + j + 1));
+            days.add(DateTime(year-1, 12, _previousDays - firstWeekday + j + 1));
           }else{
-            days.add(DateTime(year, month-1, _previousDays-firstDay.weekday + j + 1));
+            days.add(DateTime(year, month-1, _previousDays - firstWeekday + j + 1));
           }
           print(days[days.length-1]);
         }
@@ -112,7 +155,7 @@ class _CalendarState extends State<CalendarView>{
 
       //最後の日
       if(i == lastDay.day){
-        for(int j=1; j <= 7 - lastDay.weekday; j++){
+        for(int j=1; j <= 7 - lastWeekday; j++){
           if(month == 12){
             days.add(DateTime(year+1, 1, j));
           }else{
@@ -146,7 +189,7 @@ class _CalendarState extends State<CalendarView>{
     var value = await showDialog(
     context: context,
     builder: (BuildContext context) => new AlertDialog(
-      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日"),
+      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")"),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
