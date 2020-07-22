@@ -7,6 +7,7 @@ class DayOfWeek{
   String name;
   DayOfWeek(this.id, this.name);
 }
+
 class CalendarView extends StatefulWidget{
 
   @override
@@ -28,6 +29,7 @@ class _CalendarState extends State<CalendarView>{
   String headerText;  //タイトル文字
 
   PageController pageController = PageController(initialPage: 1);
+  int currentMonthPage = 1; //今月のページ
 
   //曜日定義
   final dayOfWeek = [
@@ -45,6 +47,7 @@ class _CalendarState extends State<CalendarView>{
   initState(){
     super.initState();
     _currentDate = DateTime.now();
+    _selectDate = _currentDate;
     _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
     _currentMonth = _currentDate.month;
 
@@ -91,15 +94,58 @@ class _CalendarState extends State<CalendarView>{
     //前月の日付の取得
     int _previousDays = DateTime(year, month, 0).day;
 
+    print((month-1).toString() + "月："+ _previousDays.toString());
+
+    //仮１
+    int test = 0;
+    switch(weekStart){
+      case 1: test = 0; break;
+      case 2: test = -2; break;
+      case 3: test = -4; break;
+      case 4: test = 1; break;
+      case 5: test = -1; break;
+      case 6: test = 4; break;
+      case 7: test = 2; break;
+    }
+
+    print("test = " + test.toString());
+
+    int firstWeekday = firstDay.weekday + (weekStart - 1) + test;
+    int lastWeekday = lastDay.weekday + (weekStart - 1) + test;
+
+    //くそ
+    if(firstWeekday > 7){
+      firstWeekday = firstWeekday -7;
+    }
+    if(firstWeekday > 7){
+      firstWeekday = firstWeekday -7;
+    }
+    if(firstWeekday < 1){
+      firstWeekday = firstWeekday + 7;
+    }
+    if(lastWeekday > 7) {
+      lastWeekday = lastWeekday - 7;
+    }
+    if(lastWeekday > 7) {
+      lastWeekday = lastWeekday - 7;
+    }
+    if(lastWeekday < 1){
+      lastWeekday = lastWeekday + 7;
+    }
+
+    print("firstWeekday : " + firstWeekday.toString());
+    print("lastWeekday : " + lastWeekday.toString() );
+
+
     //1か月 + 前月、先月分のリスト
     for(int i=1; i <= lastDay.day; i++){
       //最初の日
       if(i == 1){
-        for(int j=1; j <= firstDay.weekday-1; j++){
+        for(int j=1; j < firstWeekday; j++){
           if(month == 1){
-            days.add(DateTime(year-1, 12, _previousDays-firstDay.weekday + j + 1));
+            days.add(DateTime(year-1, 12, _previousDays - firstWeekday + j + 1));
           }else{
-            days.add(DateTime(year, month-1, _previousDays-firstDay.weekday + j + 1));
+            days.add(DateTime(year, month-1, _previousDays - firstWeekday + j + 1));
           }
 //          print(days[days.length-1]);
         }
@@ -109,7 +155,7 @@ class _CalendarState extends State<CalendarView>{
 
       //最後の日
       if(i == lastDay.day){
-        for(int j=1; j <= 7 - lastDay.weekday; j++){
+        for(int j=1; j <= 7 - lastWeekday; j++){
           if(month == 12){
             days.add(DateTime(year+1, 1, j));
           }else{
@@ -121,6 +167,120 @@ class _CalendarState extends State<CalendarView>{
 //      print((days.length-1 % 7).toString());
     }
     return days;
+  }
+
+  //日付選択したとき
+  void onTapSelectDate(DateTime date){
+    if(_selectDate == date){
+      showSelectDateDialog();
+    }
+
+    setState(() {
+      _selectDate = date;
+    });
+
+    print(_selectDate.toString());
+  }
+
+  //日付の詳細表示
+  Future showSelectDateDialog() async{
+    final Size size = MediaQuery.of(context).size;
+
+    var value = await showDialog(
+    context: context,
+    builder: (BuildContext context) => new AlertDialog(
+      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")"),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Container(
+              height: size.height / 2,
+              child:
+              Column(
+                children: <Widget>[
+                  Divider(
+                      color: Colors.black
+                  ),
+                  _buildEvent("予定1"),
+                  _buildEvent("予定2"),
+                  _buildEvent("予定3"),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+  //予定
+  Widget _buildEvent(String title){
+    return Container(
+      width: 400,
+      child:Row(
+        children: <Widget>[
+          Container(
+            padding: EdgeInsets.all(10.0),
+            child: Text("10:00"),
+          ),
+          Container(
+            padding: EdgeInsets.all(10.0),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  width: 5,
+                  color: Colors.amber,
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(title),
+                ],
+              )
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  //今月の位置に戻るボタン押したとき
+  void onTapCurrentMonth(){
+    pageController.animateToPage(currentMonthPage,duration: Duration(milliseconds: 300), curve: Curves.linear);
+  }
+
+  //月切り替わったときの処理
+  void onPageChanged(pageId){
+    print("pageId:" + pageId.toString());
+    for(int i=0; i < _dates.length; i++){
+      print(i.toString() + ":" + _dates[i].toString());
+    }
+
+    if(pageId == _dates.length -1){
+      DateTime tempDate = getDateTime(_dates.length-1, 10);
+      setState((){
+        _dates.add(_getTime(tempDate.year, tempDate.month+1));
+      });
+    }
+
+    setState(() {
+      DateTime tempDate = getDateTime(pageId, 10);
+      headerText = tempDate.year.toString() + "年" + tempDate.month.toString() + "月";
+    });
+
+    if(pageId == 0){
+      DateTime tempDate = getDateTime(0, 10);
+      setState(() {
+        _dates.insert(0, _getTime(tempDate.year, tempDate.month-1));
+      });
+      currentMonthPage++;
+      pageController.jumpToPage(1);
+    }
   }
 
   //header部分(< 2020年3月 >　の部分)
@@ -171,12 +331,16 @@ class _CalendarState extends State<CalendarView>{
   //１日
   Widget _buildTableCell(DateTime date, row){
     final Size size = MediaQuery.of(context).size;
-    return Column(children: <Widget>[
-      Container(
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap:(){onTapSelectDate(date);},
+      child: Container(
           height: (size.height - 230) / row,
-          child: _buildCell(date)
-      )
-    ]);
+          child: _buildCell(date),
+          color: date==_selectDate ? Colors.lightBlueAccent: Colors.white,
+      ),
+    );
   }
 
   //日にち
@@ -187,13 +351,12 @@ class _CalendarState extends State<CalendarView>{
     }
 
     Widget text = _changeText(date.weekday, date.day.toString(), flg);
-    Widget text2 ;
+
     //テスト
     if(date == _currentDate){
-      text2 = Text("今日です" , style: TextStyle(color: Colors.blue));
+      text = Text(date.day.toString() , style: TextStyle(fontWeight: FontWeight.bold));
       return Column(children: <Widget>[
         text,
-        text2
       ],
       );
     }
@@ -231,7 +394,6 @@ class _CalendarState extends State<CalendarView>{
         children: <Widget>[
           Container(
             child: Table(
-              border: TableBorder.all(),
               children: [
                 TableRow(
                   children: _calendarHeaderWidgets(),
@@ -260,34 +422,6 @@ class _CalendarState extends State<CalendarView>{
     return tempDate;
   }
 
-  //月切り替わったときの処理
-  void onPageChanged(pageId){
-//    print("pageId:" + pageId.toString());
-    for(int i=0; i < _dates.length; i++){
-      print(i.toString() + ":" + _dates[i].toString());
-    }
-
-    if(pageId == _dates.length -1){
-      DateTime tempDate = getDateTime(_dates.length-1, 10);
-      setState((){
-        _dates.add(_getTime(tempDate.year, tempDate.month+1));
-      });
-    }
-
-    setState(() {
-      DateTime tempDate = getDateTime(pageId, 10);
-      headerText = tempDate.year.toString() + "年" + tempDate.month.toString() + "月";
-    });
-
-    if(pageId == 0){
-      DateTime tempDate = getDateTime(0, 10);
-      setState(() {
-        _dates.insert(0, _getTime(tempDate.year, tempDate.month-1));
-      });
-      pageController.jumpToPage(1);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -298,12 +432,13 @@ class _CalendarState extends State<CalendarView>{
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 _leftButton(),
-                Text(headerText, style: defaultHeaderTextStyle),
+                GestureDetector(
+                  onTap: onTapCurrentMonth,
+                  child: Text(headerText, style: defaultHeaderTextStyle)),
                 _rightButton(),
               ],
             ),
           ),
-
           Expanded(
             child:PageView(
               onPageChanged: onPageChanged,
