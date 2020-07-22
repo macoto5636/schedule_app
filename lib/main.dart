@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/calendar/calendarview.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
+import 'package:provider/provider.dart';
+
+import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
 
 void main() {
-  runApp(MyApp());
+//  runApp(MyApp());
+  runApp(MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => RepeatChecker()),
+        ChangeNotifierProvider(create: (_) => NoticeChecker()),
+        ChangeNotifierProvider(create: (_) => ColorChecker()),
+      ],
+      child:MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -58,10 +73,19 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
-      Container(
+        Container(
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
-          child: Icon(Icons.add, size: 40.0,), onPressed: () {})),
+            child: Icon(Icons.add, size: 40.0,),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ScheduleAddPage())
+            )
+//          onPressed: (){
+//              print("aaa");
+//          },
+          )
+        ),
 
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
