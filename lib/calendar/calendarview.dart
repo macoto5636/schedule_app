@@ -54,8 +54,8 @@ class _CalendarState extends State<CalendarView>{
     DateTime nextMonth = DateTime(_currentDate.year, _currentDate.month+2, 0);
 
     //3か月分だけ取得
-    print("前月" +previousMonth.toString());
-    print("次月" + nextMonth.toString());
+//    print("前月" +previousMonth.toString());
+//    print("次月" + nextMonth.toString());
     _dates.add(_getTime(previousMonth.year,previousMonth.month));
     _dates.add(_getTime(_currentDate.year, _currentDate.month));
     _dates.add(_getTime(nextMonth.year, nextMonth.month));
@@ -101,11 +101,11 @@ class _CalendarState extends State<CalendarView>{
           }else{
             days.add(DateTime(year, month-1, _previousDays-firstDay.weekday + j + 1));
           }
-          print(days[days.length-1]);
+//          print(days[days.length-1]);
         }
       }
       days.add(DateTime(year, month, i));
-      print(days[days.length-1]);
+//      print(days[days.length-1]);
 
       //最後の日
       if(i == lastDay.day){
@@ -115,10 +115,10 @@ class _CalendarState extends State<CalendarView>{
           }else{
             days.add(DateTime(year, month+1 , j));
           }
-          print(days[days.length-1]);
+//          print(days[days.length-1]);
         }
       }
-      print((days.length-1 % 7).toString());
+//      print((days.length-1 % 7).toString());
     }
     return days;
   }
@@ -248,7 +248,7 @@ class _CalendarState extends State<CalendarView>{
         ],
       );
     }catch(e){
-      print(e);
+//      print(e);
       return Container();
     }
   }
@@ -262,7 +262,7 @@ class _CalendarState extends State<CalendarView>{
 
   //月切り替わったときの処理
   void onPageChanged(pageId){
-    print("pageId:" + pageId.toString());
+//    print("pageId:" + pageId.toString());
     for(int i=0; i < _dates.length; i++){
       print(i.toString() + ":" + _dates[i].toString());
     }

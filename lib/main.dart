@@ -41,7 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: Drawer(
         //拡張機能一覧
-          child: ExtentionDrawer()
+          child: ExtensionDrawer()
       ),
       appBar: AppBar(
         title: Text(widget.title),

@@ -4,21 +4,22 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 import 'extension_add_page.dart';
 
-class ExtentionDrawer extends StatefulWidget {
+class ExtensionDrawer extends StatefulWidget {
   @override
-  _ExtentionDrawerState createState() => _ExtentionDrawerState();
+  _ExtensionDrawerState createState() => _ExtensionDrawerState();
 }
 
-class _ExtentionDrawerState extends State<ExtentionDrawer> {
-  String name = '';
+class _ExtensionDrawerState extends State<ExtensionDrawer> {
+  String name;
 
   @override
   void initState(){
-    _loadUserData();
     super.initState();
+    _loadUserData();
   }
 
   _loadUserData() async{
@@ -33,96 +34,169 @@ class _ExtentionDrawerState extends State<ExtentionDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: ListView(
-        children: <Widget>[
-          Container(
-            height: 80.0,
-            child: DrawerHeader(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(
-                    '拡張機能',
-                      style: TextStyle(
-                          fontSize: 25.0,
-                          color:Colors.white
-                      ),
-                  ),
-                  IconButton(
-                      icon: Icon(Icons.add),
-                      iconSize: 35.0,
-                      onPressed: (){ moveExtentionAddPage(context); },
+    return ListView(
+      children: <Widget>[
+        Container(
+          height: 80.0,
+          child: DrawerHeader(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Text(
+                  '拡張機能',
+                    style: TextStyle(
+                        fontSize: 25.0,
+                        color:Colors.white
                     ),
-                ],
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
+                ),
+                IconButton(
+                    icon: Icon(Icons.add,color: Colors.white,),
+                    iconSize: 35.0,
+                    onPressed: (){ moveExtentionAddPage(context); },
+                  ),
+              ],
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
             ),
           ),
-          Container(
-            child: Center(
-                child: Text('$name  さん')
-            ),
-          ),
-          ExpantionListView(),
-          ListTile(
-            leading: Icon(Icons.group),
-            title: Text('ログイン / 会員登録'),
-            onTap: (){
-              moveLoginForm((context));
-            },
-
-          ),
-
-//          ListTile(
-//            title: Text("日記"),
-//            trailing: Icon(Icons.arrow_forward_ios),
-//            onTap: (){ Navigator.pop(context);},
-//          )
-        ],
-      ),
+        ),
+        Container(
+          padding: EdgeInsets.only(left: 10,bottom: 5),
+          child: Text('$name  さん',style: TextStyle(fontSize: 20),),
+        ),
+        ExtensionListView(),
+        authButton(),
+      ],
     );
   }
 
-  checkExpantion() {
-    return true;
+//  認証済判定
+//  未認証なら「ログイン会員登録」ボタン表示
+  Widget authButton(){
+    var _token = _getPrefItems();
+
+    print("token");
+    print(_token);
+    if(_token == ""){
+      return ListTile(
+        leading: Icon(Icons.group),
+        title: Text('ログイン / 会員登録'),
+        onTap: (){
+          moveLoginForm((context));
+        },
+      );
+    }else{
+      return Container();
+    }
   }
 }
 
-//drawerの中身
-class ExpantionListView extends StatefulWidget {
-  @override
-  _ExpantionListViewState createState() => _ExpantionListViewState();
+_getPrefItems() async {
+  var _token = "";
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  _token = jsonDecode(prefs.getString('token'))['token'] ?? "";
+  return _token;
 }
 
-class _ExpantionListViewState extends State<ExpantionListView> {
-  //拡張機能名と拡張機能を判別するIDが欲しい
-  List expantion_items = new List();
+//drawerの中身
+class ExtensionListView extends StatefulWidget {
+  @override
+  _ExtensionListViewState createState() => _ExtensionListViewState();
+}
+
+class _ExtensionListViewState extends State<ExtensionListView> {
+  List extensions = new List();
+  var token;
+  bool extensionFlag = true;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _getData();
+  }
+
+  Future<bool> _getData() async {
+//    ローカルストレージに保存している認証トークンを取り出している
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    token = jsonDecode(localStorage.getString('token'))['token'];
+
+//    HTTPリクエストのヘッダー部分
+//    トークンをセットしている
+    Map<String, String> requestHeaders = {
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': "Bearer $token"
+    };
+
+    final String url = "http://10.0.2.2:8000/api/extension/addlist";
+    http.Response response = await http.get(
+        url,
+        headers: requestHeaders
+    );
+
+    extensions = jsonDecode(response.body);
+
+    extensions.forEach((element) {
+      if(!element["flag"]){
+        extensionFlag = false;
+      }
+    });
+
+    return extensionFlag;
   }
 
   @override
   Widget build(BuildContext context) {
-    //拡張機能を有無を判定して表示する
-    if(false){
-      return Container(
-          child: ListView.builder(
-            itemCount: expantion_items.length,
-            itemBuilder: (context,potision){
-              return ListTile(
-                title: Text("日記"),
+    return Container(
+      child: FutureBuilder(
+        future: _getData(),
+        builder: (BuildContext context, AsyncSnapshot snapshot) {
+          if (snapshot.hasData) {
+            if(snapshot.data){
+              //現在のカレンダーに拡張機能が一つでも入っている場合の表示
+              return extensions == null ? Container() : Container(
+                child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (BuildContext context, int index){
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blueGrey[50],
+                          border: Border(
+                            top: BorderSide(color: Colors.grey),
+                            bottom: BorderSide(color: Colors.grey)
+                          )
+                        ),
+                        child: ListTile(
+                          title: Text(
+                            extensions[index]["ex_name"],
+                            style: TextStyle(fontSize: 20),
+                          ),
+                          trailing: Icon(Icons.arrow_forward_ios),
+                          onTap: (){},
+                        ),
+                      );
+                    },
+                    itemCount: extensions.length,
+                ),
               );
+            }else{
+              return NoExtension(context);
             }
-          )
-      );
-    }else{
-      return
-        Padding(
+          } else {
+            return Center(child: Text("処理中"));
+          }
+        },
+      ),
+    );
+    }
+}
+
+
+Widget NoExtension(BuildContext context){
+        return Padding(
           padding: const EdgeInsets.only(top: 100,bottom: 100),
           child: Container(
             child:Center(
@@ -132,10 +206,7 @@ class _ExpantionListViewState extends State<ExpantionListView> {
                   FlatButton(
                     color: Theme.of(context).primaryColor,
                     textColor: Colors.white,
-//                    disabledColor: Colors.grey,
-//                    disabledTextColor: Colors.black,
                     padding: EdgeInsets.all(8.0),
-//                    splashColor: Colors.blueAccent,
                     onPressed: () {
                       moveExtentionAddPage(context);
                     },
@@ -149,8 +220,6 @@ class _ExpantionListViewState extends State<ExpantionListView> {
             ),
           ),
         );
-    }
-  }
 }
 
 //拡張機能追加ページへ移動
@@ -176,5 +245,7 @@ moveLoginForm(BuildContext context){
     ),
   );
 }
+
+
 
 
