@@ -6,11 +6,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scheduleapp/extension/extension_details.dart';
 
 
-class ExtentionAddPage extends StatelessWidget {
+class ExtensionAddPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text("拡張機能の追加"),
       ),
       body: Container(
@@ -61,9 +65,6 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
       extensionList = jsonDecode(response.body);
     });
   }
-
-  //拡張機能の情報(id,ex_name)を取得する
-  var listItems = ["日記","タスク管理","シフト管理"]; //ダミー
   Widget ExtensionButton(list){
     var _widget;
     bool flag = list["flag"];
@@ -77,7 +78,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
           icon: Icon(Icons.add),
           iconSize: 40.0,
           onPressed: (){
-            extentionAdd(id);
+            extensionAdd(id);
           },
       );
     }
@@ -107,7 +108,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
     );
   }
 
-  void extentionAdd(int id) {
+  void extensionAdd(int id) {
     final json = jsonEncode(<String,String>{
       "calendar_id" : "1",
       "extension_id" : id.toString()

@@ -38,10 +38,11 @@ class ExtensionDetailsPage extends StatelessWidget {
                     children: <Widget>[
                       SizedBox(
                         height: 50,
-                        child: RaisedButton(
+                        child: details["flag"] ? Center(child: Text("追加済み"))
+                            : RaisedButton(
                           child: Text(
-                              "追加",
-                              style: TextStyle(color: Colors.white,fontSize: 20),
+                            "追加",
+                            style: TextStyle(color: Colors.white,fontSize: 20),
                           ),
                           color: Colors.blue,
                           shape: RoundedRectangleBorder(

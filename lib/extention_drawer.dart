@@ -183,10 +183,14 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                 ),
               );
             }else{
+              //現在のカレンダーに拡張機能が入っていない場合の表示
               return NoExtension(context);
             }
           } else {
-            return Center(child: Text("処理中"));
+            //処理待ち
+            return Center(
+                child: CircularProgressIndicator()
+            );
           }
         },
       ),
@@ -194,7 +198,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
     }
 }
 
-
+//拡張機能なし画面
 Widget NoExtension(BuildContext context){
         return Padding(
           padding: const EdgeInsets.only(top: 100,bottom: 100),
@@ -228,7 +232,7 @@ moveExtentionAddPage(BuildContext context){
   Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          return ExtentionAddPage();
+          return ExtensionAddPage();
         },
       ),
   );
