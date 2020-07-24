@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/calendar/calendarview.dart';
-import 'package:scheduleapp/schedule_detail.dart';
 
 
 void main() {
