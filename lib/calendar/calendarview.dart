@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'default_style.dart';
 
+import 'package:scheduleapp/main.dart';
 import 'package:scheduleapp/schedule_detail.dart';
 
 import 'package:http/http.dart' as http;
@@ -14,6 +15,9 @@ class DayOfWeek{
 }
 
 class CalendarView extends StatefulWidget{
+  String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
+  Function(String) setCurrentDate;
+  CalendarView(this.currentDate, this.setCurrentDate);
 
   @override
   _CalendarState createState() => new _CalendarState();
@@ -93,6 +97,7 @@ class _CalendarState extends State<CalendarView>{
       //print("Response body: ${response.body}");
       List list = json.decode(response.body);
 
+      setState(() {
       //id取得
       _schedulesId = list.map<int>((value){
         return value['id'];
@@ -112,6 +117,7 @@ class _CalendarState extends State<CalendarView>{
       _schedulesEndDate = list.map<DateTime>((value){
         return DateTime.parse(value['end_date']);
       }).toList();
+      });
 
     });
 
@@ -358,6 +364,7 @@ class _CalendarState extends State<CalendarView>{
     setState(() {
       DateTime tempDate = getDateTime(pageId, 10);
       headerText = tempDate.year.toString() + "年" + tempDate.month.toString() + "月";
+      widget.setCurrentDate(headerText);
     });
 
     if(pageId == 0){
@@ -370,18 +377,18 @@ class _CalendarState extends State<CalendarView>{
     }
   }
 
-  //header部分(< 2020年3月 >　の部分)
-  // 前の月へ
-  Widget _leftButton() => IconButton(
-    onPressed: (){pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
-    icon: const Icon(Icons.chevron_left),
-  );
-
-  //次の月へ
-  Widget _rightButton() => IconButton(
-    onPressed: (){pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
-    icon: const Icon(Icons.chevron_right),
-  );
+//  //header部分(< 2020年3月 >　の部分)
+//  // 前の月へ
+//  Widget _leftButton() => IconButton(
+//    onPressed: (){pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
+//    icon: const Icon(Icons.chevron_left),
+//  );
+//
+//  //次の月へ
+//  Widget _rightButton() => IconButton(
+//    onPressed: (){pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
+//    icon: const Icon(Icons.chevron_right),
+//  );
 
   //body部分(カレンダー)
   //曜日
@@ -423,7 +430,7 @@ class _CalendarState extends State<CalendarView>{
       behavior: HitTestBehavior.opaque,
       onTap:(){onTapSelectDate(date);},
       child: Container(
-          height: (size.height - 230) / row,
+          height: (size.height - 180) / row,
           child: _buildCell(date),
           color: date==_selectDate ? Colors.lightBlueAccent: Colors.white,
       ),
@@ -495,6 +502,7 @@ class _CalendarState extends State<CalendarView>{
         children: <Widget>[
           Container(
             child: Table(
+              border: TableBorder(bottom: BorderSide(color: Colors.grey, width: 1.0)),
               children: [
                 TableRow(
                   children: _calendarHeaderWidgets(),
@@ -504,7 +512,7 @@ class _CalendarState extends State<CalendarView>{
           ),
           Expanded(
             child: Table(
-              border: TableBorder.all(),
+              border: TableBorder(horizontalInside: BorderSide(color: Colors.grey, width: 1.0)),
               children: children,
             ),
           )
@@ -537,25 +545,27 @@ class _CalendarState extends State<CalendarView>{
     return Center(
       child: Column(
         children: <Widget>[
+//          Container(
+//            child: Row(
+//              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//              children: <Widget>[
+//                _leftButton(),
+//                GestureDetector(
+//                  onTap: onTapCurrentMonth,
+//                  child: Text(headerText, style: defaultHeaderTextStyle)),
+//                _rightButton(),
+//              ],
+//            ),
+//          ),
           Container(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                _leftButton(),
-                GestureDetector(
-                  onTap: onTapCurrentMonth,
-                  child: Text(headerText, style: defaultHeaderTextStyle)),
-                _rightButton(),
-              ],
-            ),
-          ),
-          Expanded(
-            child:PageView(
-              onPageChanged: onPageChanged,
-              controller: pageController,
-              children: List<Widget>.generate(_dates.length,(index){
-                return _buildTable(_dates[index]);
-              })
+            child:Expanded(
+              child:PageView(
+                onPageChanged: onPageChanged,
+                controller: pageController,
+                children: List<Widget>.generate(_dates.length,(index){
+                  return _buildTable(_dates[index]);
+                })
+              ),
             ),
           ),
         ],
