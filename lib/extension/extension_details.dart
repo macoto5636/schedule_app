@@ -1,8 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class ExtensionDetailsPage extends StatelessWidget {
   final details;
+  var token;
+
   ExtensionDetailsPage({Key key, this.details}): super(key: key);
 
   @override
@@ -49,6 +55,7 @@ class ExtensionDetailsPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10.0),
                           ),
                           onPressed: () {
+                            extensionAdd(details["id"]);
                             Navigator.pop(context);
                             Navigator.pop(context);
                             Fluttertoast.showToast(
@@ -86,6 +93,36 @@ class ExtensionDetailsPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void extensionAdd(int id) {
+    final json = jsonEncode(<String,String>{
+      "calendar_id" : "1",
+      "extension_id" : id.toString()
+    });
+    postData(json);
+  }
+
+  Future postData(json) async{
+    final _url = "http://10.0.2.2:8000/api/extension/calexadd";
+
+//     ローカルストレージに保存している認証トークンを取り出している
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    token = jsonDecode(localStorage.getString('token'))['token'];
+
+//    HTTPリクエストのヘッダー部分
+//    トークンをセットしている
+    Map<String, String> requestHeaders = {
+      'Content-type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': "Bearer $token"
+    };
+
+    http.Response response = await http.post(
+        _url,
+        headers: requestHeaders,
+        body: json
     );
   }
 

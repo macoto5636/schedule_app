@@ -117,7 +117,7 @@ class _RegisterFormState extends State<RegisterForm> {
       'password': password,
     };
 
-    var res = await Network().authData(data, 'register');
+    var res = await Network().postData(data, 'register');
     var body = json.decode(res.body);
     if(body['success']){
       SharedPreferences localStorage = await SharedPreferences.getInstance();

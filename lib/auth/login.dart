@@ -107,8 +107,9 @@ class _LoginFormState extends State<LoginForm> {
       'password' : password
     };
 
-    var res = await Network().authData(data, 'login');
+    var res = await Network().postData(data, 'login');
     var body = json.decode(res.body);
+    print(body);
 
     if(body['success']){
       SharedPreferences localStorage = await SharedPreferences.getInstance();
