@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
+
 import 'package:provider/provider.dart';
 
 import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
@@ -10,15 +11,15 @@ import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
 
 void main() {
-//  runApp(MyApp());
+  //runApp(MyApp());
   runApp(MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => RepeatChecker()),
-        ChangeNotifierProvider(create: (_) => NoticeChecker()),
-        ChangeNotifierProvider(create: (_) => ColorChecker()),
-      ],
-      child:MyApp(),
-    )
+    providers: [
+      ChangeNotifierProvider(create: (_) => RepeatChecker()),
+      ChangeNotifierProvider(create: (_) => NoticeChecker()),
+      ChangeNotifierProvider(create: (_) => ColorChecker()),
+    ],
+    child:MyApp(),
+  )
   );
 }
 
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Calendar'),
+      home: MyHomePage(title: '2020年'),
     );
   }
 }
@@ -40,14 +41,24 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  final String title;
+  String title;
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+_MyHomePageState myHomePageState = _MyHomePageState();
+
 class _MyHomePageState extends State<MyHomePage> {
   int _currentTabIndex = 1; //BottomNavigationBarItem現在選択しているやつ
+
+  String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";  //現在表示されてるカレンダーの年月
+
+  void setCurrentDate(String date){
+    setState(() {
+      currentDate = date;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ExtensionDrawer()
       ),
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(currentDate),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.view_carousel),
@@ -69,23 +80,25 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Container(
-        child: CalendarView(),
+        child: CalendarView(currentDate,setCurrentDate),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
-        Container(
+      Container(
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
-            child: Icon(Icons.add, size: 40.0,),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ScheduleAddPage())
-            )
-//          onPressed: (){
-//              print("aaa");
-//          },
-          )
-        ),
+          child: Icon(Icons.add, size: 40.0,),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ScheduleAdd();
+                    },
+                  ),
+                );
+              }
+          )),
 
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
@@ -115,6 +128,9 @@ class _MyHomePageState extends State<MyHomePage> {
       setState((){
         _currentTabIndex = index;
       });
+    }
+    if(index == 3){
+
     }
 
   }
