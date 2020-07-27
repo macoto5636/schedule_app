@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:scheduleapp/extention_drawer.dart';
-import 'package:scheduleapp/calendar/calendarview.dart';
-import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
-
 import 'package:provider/provider.dart';
 
+import 'package:scheduleapp/extention_drawer.dart';
+
+import 'package:scheduleapp/calendar/calendarview.dart';
+import 'package:scheduleapp/timetable/timetable_view.dart';
+
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
@@ -54,6 +56,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";  //現在表示されてるカレンダーの年月
 
+  int _page = 1;
+
   void setCurrentDate(String date){
     setState(() {
       currentDate = date;
@@ -80,7 +84,16 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       body: Container(
-        child: CalendarView(currentDate,setCurrentDate),
+        child: Column(
+          children: [
+            if(_page==1) Expanded(
+              child: CalendarView(currentDate,setCurrentDate),
+            ),
+            if(_page==2) Expanded(
+              child: TimeTableView(setCurrentDate),
+            )
+          ],
+        )
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton:
@@ -94,7 +107,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 )
             )
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -124,8 +136,12 @@ class _MyHomePageState extends State<MyHomePage> {
         _currentTabIndex = index;
       });
     }
-    if(index == 3){
-
+    if(index == 2){
+      if(_page == 1){
+        _page = 2;
+      }else{
+        _page = 1;
+      }
     }
 
   }
