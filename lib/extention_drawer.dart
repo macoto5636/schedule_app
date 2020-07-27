@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import 'extension_add_page.dart';
+import 'extension_diary/diary_main_page.dart';
 
 class ExtensionDrawer extends StatefulWidget {
   @override
@@ -76,8 +77,6 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
   Widget authButton(){
     var _token = _getPrefItems();
 
-    print("token");
-    print(_token);
     if(_token == ""){
       return ListTile(
         leading: Icon(Icons.group),
@@ -106,7 +105,7 @@ class ExtensionListView extends StatefulWidget {
 }
 
 class _ExtensionListViewState extends State<ExtensionListView> {
-  List extensions = new List();
+  List extensions;
   var token;
   bool extensionFlag = true;
 
@@ -175,7 +174,9 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                             style: TextStyle(fontSize: 20),
                           ),
                           trailing: Icon(Icons.arrow_forward_ios),
-                          onTap: (){},
+                          onTap: (){
+                            moveExtensionSubPages(context,extensions[index]["id"]);
+                          },
                         ),
                       );
                     },
@@ -184,7 +185,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
               );
             }else{
               //現在のカレンダーに拡張機能が入っていない場合の表示
-              return NoExtension(context);
+              return noExtensionView(context);
             }
           } else {
             //処理待ち
@@ -199,7 +200,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
 }
 
 //拡張機能なし画面
-Widget NoExtension(BuildContext context){
+Widget noExtensionView(BuildContext context){
         return Padding(
           padding: const EdgeInsets.only(top: 100,bottom: 100),
           child: Container(
@@ -248,6 +249,19 @@ moveLoginForm(BuildContext context){
       },
     ),
   );
+}
+
+//拡張機能のページ（機能ページ）へ移動
+void moveExtensionSubPages(BuildContext context,int id){
+  switch(id){
+    case 1 : Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context){
+          return DiaryMainPage();
+        },
+      )
+    );
+  }
 }
 
 

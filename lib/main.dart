@@ -100,13 +100,13 @@ class _MyHomePageState extends State<MyHomePage> {
       Container(
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
-          child: Icon(Icons.add, size: 40.0,),
-              onPressed: () => Navigator.push(
+            child: Icon(Icons.add, size: 40.0,),
+                onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ScheduleAddPage())
-              )
-          )),
-
+                )
+            )
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
           BottomNavigationBarItem(
