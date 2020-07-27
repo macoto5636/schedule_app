@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'default_style.dart';
 
-import 'package:scheduleapp/main.dart';
 import 'package:scheduleapp/schedule_detail.dart';
 
 import 'package:http/http.dart' as http;
@@ -45,7 +44,7 @@ class _CalendarState extends State<CalendarView>{
   List<String> _schedulesTitle = [];
   List<DateTime> _schedulesStartDate = [];
   List<DateTime> _schedulesEndDate = [];
-  List<String> _schedulesColor = [];
+  List<Color> _schedulesColor = [];
 
   //曜日定義
   final dayOfWeek = [
@@ -117,7 +116,13 @@ class _CalendarState extends State<CalendarView>{
       _schedulesEndDate = list.map<DateTime>((value){
         return DateTime.parse(value['end_date']);
       }).toList();
+
+      //色の取得
+      _schedulesColor = list.map<Color>((value){
+        return Color(int.parse(value['color']));
+      }).toList();
       });
+
 
     });
 
@@ -295,8 +300,8 @@ class _CalendarState extends State<CalendarView>{
                 Container(
                   padding: EdgeInsets.all(10.0),
                   child:
-                    Text(_schedulesStartDate[i].hour.toString() + ":" + _schedulesStartDate[i].minute.toString() + "\n ｜"
-                      + "\n" + _schedulesEndDate[i].hour.toString() + ":" + _schedulesEndDate[i].minute.toString()),
+                    Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
+                      + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0')),
                 ),
                 Container(
                   padding: EdgeInsets.all(10.0),
@@ -304,7 +309,7 @@ class _CalendarState extends State<CalendarView>{
                     border: Border(
                       left: BorderSide(
                         width: 5,
-                        color: Colors.amber,
+                        color: _schedulesColor[i],
                       ),
                     ),
                   ),
@@ -430,7 +435,7 @@ class _CalendarState extends State<CalendarView>{
       behavior: HitTestBehavior.opaque,
       onTap:(){onTapSelectDate(date);},
       child: Container(
-          height: (size.height - 180) / row,
+          height: (size.height - 170) / row,
           child: _buildCell(date),
           color: date==_selectDate ? Colors.lightBlueAccent: Colors.white,
       ),
@@ -465,7 +470,7 @@ class _CalendarState extends State<CalendarView>{
             Container(
               width: 300,
               child: Text(_schedulesTitle[i], style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center,),
-              color: Colors.blue
+              color: _schedulesColor[i]
             )
           );
         widgets.add(widget);
@@ -542,7 +547,7 @@ class _CalendarState extends State<CalendarView>{
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Container(
       child: Column(
         children: <Widget>[
 //          Container(
