@@ -78,7 +78,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
           icon: Icon(Icons.add),
           iconSize: 40.0,
           onPressed: (){
-            extensionAdd(id);
+
           },
       );
     }
@@ -105,38 +105,6 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
           },
         itemCount: extensionList.length,
       ),
-    );
-  }
-
-  void extensionAdd(int id) {
-    final json = jsonEncode(<String,String>{
-      "calendar_id" : "1",
-      "extension_id" : id.toString()
-    });
-    postData(json);
-  }
-
-  Future postData(json) async{
-    final _url = "http://10.0.2.2:8000/api/extension/calexadd";
-
-//     ローカルストレージに保存している認証トークンを取り出している
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    token = jsonDecode(localStorage.getString('token'))['token'];
-
-    print(token);
-
-//    HTTPリクエストのヘッダー部分
-//    トークンをセットしている
-    Map<String, String> requestHeaders = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': "Bearer $token"
-    };
-
-    http.Response response = await http.post(
-        _url,
-        headers: requestHeaders,
-        body: json
     );
   }
 }
