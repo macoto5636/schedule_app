@@ -118,7 +118,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           Text(date.year.toString() + "年", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           Text(date.month.toString() + "月" + date.day.toString() + "日"  + "(" + dayOfWeek[date.weekday -1].name + ")",
             style:TextStyle(fontSize: 25, fontWeight: FontWeight.bold)),
-          Text(date.hour.toString() + ":" + date.minute.toString(), style: TextStyle(fontSize:30, fontWeight: FontWeight.bold),)
+          Text(date.hour.toString().padLeft(2, '0') + ":" + date.minute.toString().padLeft(2, '0'), style: TextStyle(fontSize:30, fontWeight: FontWeight.bold),)
         ],
       ),
     );
