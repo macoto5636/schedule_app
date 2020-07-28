@@ -26,6 +26,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
   _loadUserData() async{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var user = jsonDecode(localStorage.getString('user'));
+    print(user);
     if(user != null) {
       setState(() {
         name = user['name'];
@@ -107,6 +108,7 @@ class ExtensionListView extends StatefulWidget {
 class _ExtensionListViewState extends State<ExtensionListView> {
   List extensions;
   var token;
+  var calendarId;
   bool extensionFlag = true;
 
   @override
@@ -120,6 +122,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
 //    ローカルストレージに保存している認証トークンを取り出している
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     token = jsonDecode(localStorage.getString('token'))['token'];
+    calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
 //    HTTPリクエストのヘッダー部分
 //    トークンをセットしている
@@ -129,7 +132,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
       'Authorization': "Bearer $token"
     };
 
-    final String url = "http://10.0.2.2:8000/api/extension/addlist";
+    final String url = "http://10.0.2.2:8000/api/extension/addlist/$calendarId";
     http.Response response = await http.get(
         url,
         headers: requestHeaders
