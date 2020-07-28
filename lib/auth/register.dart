@@ -130,7 +130,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
       Navigator.of(context).pop();
       Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => MyHomePage()
+          builder: (context) => MyHomePage(title: '2020年',)
       ));
 
       debugPrint('登録成功');

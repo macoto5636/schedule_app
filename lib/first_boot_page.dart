@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
       ));
     }else{
       Navigator.pushReplacement(context, MaterialPageRoute(
-          builder: (context) => MyHomePage()
+          builder: (context) => MyHomePage(title: '2020年',)
       ));
     }
   }
