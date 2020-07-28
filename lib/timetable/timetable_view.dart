@@ -1,6 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+
 class DayOfWeek{
   int id;
   String name;
@@ -15,7 +19,7 @@ class TimeTableView extends StatefulWidget {
   _TimeTableViewState createState() => _TimeTableViewState();
 }
 
-class _TimeTableViewState extends State<TimeTableView> {
+class _TimeTableViewState extends State<TimeTableView>{
 
   //曜日定義
   final dayOfWeek = [
@@ -29,7 +33,81 @@ class _TimeTableViewState extends State<TimeTableView> {
   ];
 
   //現在の日付
-  DateTime _currentDate = DateTime.now();
+  DateTime _currentDate = DateTime(2020,7,27);
+
+  //その日の予定
+  List<int> _schedulesId = [];
+  List<String> _schedulesTitle = [];
+  List<DateTime> _schedulesStartDate = [];
+  List<DateTime> _schedulesEndDate = [];
+  List<Color> _schedulesColor = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _getSchedules();
+  }
+
+  //現在の日付の予定取得
+  void _getSchedules() async{
+    var url = "http://10.0.2.2:8000/api/schedules/start_date/" +
+        _currentDate.year.toString() + "-" + _currentDate.month.toString().padLeft(2, '0') + "-" + _currentDate.day.toString().padLeft(2,'0');
+    print(url);
+
+    await http.get(url).then((response){
+      print("Response status: ${response.statusCode}");
+      List list = json.decode(response.body);
+
+      setState(() {
+        //id取得
+        _schedulesId = list.map<int>((value){
+          return value['id'];
+        }).toList();
+
+        //タイトル取得
+        _schedulesTitle = list.map<String>((value){
+          return value['title'];
+        }).toList();
+
+        //開始日時取得
+        _schedulesStartDate = list.map<DateTime>((value){
+          return DateTime.parse(value['start_date']);
+        }).toList();
+
+        //終了日時取得
+        _schedulesEndDate = list.map<DateTime>((value){
+          return DateTime.parse(value['end_date']);
+        }).toList();
+
+        //色の取得
+        _schedulesColor = list.map<Color>((value){
+          return Color(int.parse(value['color']));
+        }).toList();
+      });
+    });
+  }
+
+  //DateTimeの時間の差異
+  int _getDateTimeDiff(DateTime startDate, DateTime endDate){
+    int minute = 0;
+    int startHour = startDate.hour;
+    int endHour = endDate.hour;
+
+    if(startDate.day != endDate.day){
+      endHour = 24;
+    }
+
+    if(startDate.minute < endDate.minute){
+      minute += (endDate.minute + 60) - startDate.minute;
+      endHour++;
+    }else{
+      minute += endDate.minute - startDate.minute;
+    }
+
+    minute = (endHour - startHour) * 60;
+
+    return minute;
+  }
 
   //日付変更時
   void _changeCurrentDate(int n){
@@ -37,20 +115,6 @@ class _TimeTableViewState extends State<TimeTableView> {
       _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day - n);
       widget.setCurrentDate(_currentDate.year.toString() + "年" + _currentDate.month.toString() + "月");
     });
-  }
-
-  Widget _buildCorner(){
-    return Positioned(
-      left: 0,
-      top: 0,
-      child: SizedBox(
-        width: 300,
-        height: 300,
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: Colors.blueAccent),
-        ),
-      ),
-    );
   }
 
   Widget _buildTitle(){
@@ -93,29 +157,135 @@ class _TimeTableViewState extends State<TimeTableView> {
     icon: const Icon(Icons.chevron_right),
   );
 
-  Widget _buildTimeline(){
+  //ここからしたのやつ合体してる
+  Widget _buildSingleChildScrollView(){
     return Container(
-      child: ListView(
+      child: SingleChildScrollView(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            for(var i = 0; i < 24; i++)
-              i
-          ].map((hour){
-            return Container(
-              height: 60,
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.grey,
-                    width: 0,
-                  ),
-                ),
+            _buildHourContainer(60.0),
+            Expanded(
+              child: Stack(
+                children: [
+                  _buildBackMainContent(60.0),
+                  for(int i=0;i<_schedulesId.length;i++)
+                    _buildSchedule(i, 350)
+                ],
               ),
-              child: Text(
-                hour.toString() + ":00",
-              ),
-            );
-          }).toList(),
+            )
+          ],
+        ),
       ),
+    );
+  }
+
+  //時間のところ
+  Widget _buildHourContainer(double height){
+    return Column(
+      children: [
+        for(int i=0; i<24; i++)
+          i
+      ].map((hour){
+        return Container(
+          height: height,
+          width: 60.0,
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: Colors.grey,
+                width: 0,
+              )
+            )
+          ),
+          child: Text(
+            hour.toString().padLeft(2,'0') + ":00", textAlign: TextAlign.center,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  //後ろの線
+  Widget _buildBackMainContent(double height){
+    return Column(
+      children: [
+        for(int i=0; i<24; i++)
+          i
+      ].map((i){
+        return Container(
+          height: height,
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: Colors.grey,
+                width: 0,
+              )
+            )
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+
+  //スケジュールのContainer
+  Widget _buildSchedule(int num, double width){
+    int scheduleHeight;
+    double scheduleWidth;
+
+    int cnt = 1;
+    int cnt2 = 0;
+    for(int i=0; i < _schedulesId.length; i++){
+      int flg = 0;
+      //時間帯被っているかチェック
+      if(_schedulesId[num] != _schedulesId[i]){
+        int startHourA = _schedulesStartDate[num].hour;
+        int endHourA = _schedulesEndDate[num].hour;
+        if(startHourA > endHourA){
+          endHourA = 12;
+        }
+
+        int startHourB = _schedulesStartDate[i].hour;
+        int endHourB = _schedulesEndDate[i].hour;
+        if(startHourB > endHourB){
+          endHourB = 12;
+        }
+        for(int hourB=startHourB; hourB<=endHourB; hourB++){
+          for(int hourA=startHourA; hourA<=endHourA; hourA++){
+            if(hourA == hourB && flg==0){
+              cnt++;
+              flg = 1;
+              if(_schedulesId[num] > _schedulesId[i]){
+                cnt2++;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    scheduleHeight = _getDateTimeDiff(_schedulesStartDate[num], _schedulesEndDate[num]);
+    scheduleWidth = width;
+    print("height:" + scheduleHeight.toString());
+
+    return Positioned(
+        top: (_schedulesStartDate[num].hour * 60).toDouble(),
+        left: (cnt2 * (width/cnt)).toDouble(),
+        height: scheduleHeight.toDouble(),
+        width: width/cnt,
+        child: Container(
+          color: _schedulesColor[num],
+          //height: scheduleHeight.toDouble(),
+          //width: scheduleWidth,
+          child: Column(
+            children: [
+              Text(_schedulesTitle[num], style: TextStyle(color: Colors.white),),
+              Text(_schedulesStartDate[num].hour.toString().padLeft(2,'0') + ":" + _schedulesStartDate[num].minute.toString().padLeft(2,'0') + "〜" +
+                _schedulesEndDate[num].hour.toString().padLeft(2,'0') + ":" + _schedulesEndDate[num].minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white),),
+            ],
+          ),
+        )
     );
   }
 
@@ -126,12 +296,8 @@ class _TimeTableViewState extends State<TimeTableView> {
         children: [
           _buildTitle(),
           Expanded(
-            child: Stack(
-              children: [
-                _buildTimeline()
-              ],
-            ),
-          ),
+            child: _buildSingleChildScrollView(),
+          )
         ],
       ),
     );
