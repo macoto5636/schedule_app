@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/main.dart';
 import 'package:scheduleapp/network_utils/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -110,25 +111,28 @@ class _RegisterFormState extends State<RegisterForm> {
     );
   }
 
-  _register()async{
+  _register() async{
     var data = {
       'email' : email,
       'name' : name,
       'password': password,
     };
 
-    var res = await Network().postData(data, 'register');
+    var res = await Network().authData(data, 'register');
     var body = json.decode(res.body);
+    print("body[calendar]");
+    print(body['calendar']);
     if(body['success']){
       SharedPreferences localStorage = await SharedPreferences.getInstance();
       localStorage.setString('token', json.encode(body['token']));
       localStorage.setString('user', json.encode(body['user']));
-//      Navigator.push(
-//        context,
-//        new MaterialPageRoute(
-//            builder: (context) => Home()
-//        ),
-//      );
+      localStorage.setString('calendar',json.encode(body['calendar']));
+
+      Navigator.of(context).pop();
+      Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context) => MyHomePage(title: '2020年',)
+      ));
+
       debugPrint('登録成功');
     }
 
