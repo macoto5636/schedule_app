@@ -42,8 +42,16 @@ class ScheduleAddPage extends  StatefulWidget{
   @override
   ScheduleAddPageState createState() => ScheduleAddPageState();
 }
-
+enum Answers{
+  YES,
+  NO
+}
 class ScheduleAddPageState extends State<ScheduleAddPage>{
+  var _titleController = TextEditingController();
+  var _placeController = TextEditingController();
+  var _urlController = TextEditingController();
+  var _memoController = TextEditingController();
+
   DateTime now = DateTime.now();
   bool _active = false;
   var iconSIze = 25.0;
@@ -70,20 +78,73 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
       }
     });
   }
+  String _value = '';
+
+  void _setValue(String value) => setState(() => _value = value);
+
+  Future _showDialog() async {
+    var value = await showDialog(
+      context: context,
+      builder: (BuildContext context) => new AlertDialog(
+//        title: new Text('AlertDialog'),
+        content: new Text('入力した内容は削除されます。キャンセルしてもよろしいですか？'),
+        actions: <Widget>[
+          new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context, Answers.YES);},),
+          new SimpleDialogOption(child: new Text('キャンセル'),onPressed: (){Navigator.pop(context, Answers.NO);},),
+        ],
+      ),
+    );
+    switch(value) {
+      case Answers.YES:
+        _setValue('Yes');
+        _clear();
+        Navigator.of(context).pop();
+        break;
+      case Answers.NO:
+        _setValue('NO');
+        break;
+    }
+  }
+  void _clear(){
+    _titleController = TextEditingController(text: '');
+    _placeController = TextEditingController(text: '');
+    _urlController = TextEditingController(text: '');
+    _memoController = TextEditingController(text: '');
+    context.read<ColorChecker>().set(0);
+    context.read<RepeatChecker>().set(0);
+    context.read<NoticeChecker>().set(0);
+  }
   @override
   Widget build(BuildContext context) {
+    st = now;
+    ed = now;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: (){
+            _showDialog();
+            },
         ),
         title: Text("新しい予定"),
         centerTitle: true,
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.add),
-            onPressed: (){},
+            icon: Icon(Icons.check),
+            onPressed: (){
+              var dataList = {
+                "title":_titleController.text,
+                "allDay":_active,
+                "stTime":st,
+                "edTime":ed,
+                "repeat":context.read<RepeatChecker>().checked,
+                "notice":context.read<NoticeChecker>().listChecked,
+                "color":context.read<ColorChecker>().listColor[context.read<ColorChecker>().checked],
+                "place":_placeController.text,
+                "url":_urlController.text,
+                "memo":_memoController.text,
+              };
+            },
           )
         ],
       ),
@@ -96,6 +157,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
       children: <Widget>[
         ListTile(
           title: TextField(
+            controller: _titleController,
             decoration: InputDecoration.collapsed(
               hintText: "タイトル",
             ),
@@ -144,10 +206,9 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
                       st = date;
                       stText = DateFormat('yyyy/MM/dd').format(st).toString();
                       if (st.year >= ed.year && st.month >= ed.month &&
-                          st.day >= ed.day && st.hour >= ed.hour &&
-                          st.minute >= ed.minute) {
+                          st.day >= ed.day) {
                         ed = st;
-                        edText = DateFormat('yyyy/MM/dd HH:mm')
+                        edText = DateFormat('yyyy/MM/dd')
                             .format(st)
                             .toString();
                       }
@@ -302,14 +363,12 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
               context,
               MaterialPageRoute(builder: (context) => SubRepeatPage())
           ),
-//          onTap: () => Navigator.of(context).pushNamed("/repeat"),
         ), ListTile(
           leading: Icon(
             Icons.timer,
             size: iconSIze,
           ),
           title: Text("通知"),
-//            trailing: ColorText(),
           trailing: NoticeText(),
           onTap: () => Navigator.push(
               context,
@@ -335,6 +394,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
             size: iconSIze,
           ),
           title: TextField(
+            controller: _placeController,
             decoration: InputDecoration.collapsed(
               hintText: "場所",
             ),
@@ -345,6 +405,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
             size: iconSIze,
           ),
           title: TextField(
+            controller: _urlController,
             decoration: InputDecoration.collapsed(
               hintText: "URL",
             ),
@@ -355,6 +416,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
             size: iconSIze,
           ),
           title: TextField(
+            controller: _memoController,
             decoration: InputDecoration.collapsed(
               hintText: "メモ",
             ),
@@ -368,57 +430,5 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
               ),*/
       ],
     );
-  }
-}
-
-class RepeatText extends StatelessWidget {
-  const RepeatText({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(context.watch<RepeatChecker>().listText[context.watch<RepeatChecker>().checked]);
-  }
-}
-
-class NoticeText extends StatelessWidget {
-  const NoticeText({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    List<String> listText = context.watch<NoticeChecker>().listText;
-    List<bool> listCheck = context.watch<NoticeChecker>().listChecked;
-    String text = "";
-    for(int i = 0; i < listText.length; i++){
-      if(listCheck[i]){
-        text += listText[i];
-      }
-    }
-    return Container(
-      width: 200,
-//      padding: new EdgeInsets.all(5.0),
-      child: DefaultTextStyle(
-        style: TextStyle(color: Colors.black),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        child: Text(
-          text,
-          textAlign: TextAlign.right,
-        ),
-      ),
-//        child: Text(
-//          text,
-//          maxLines: 1,
-//          textAlign: TextAlign.right,
-//        )
-    );
-  }
-}
-
-class ColorText extends StatelessWidget {
-  const ColorText({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(context.watch<ColorChecker>().listText[context.watch<ColorChecker>().checked]);
   }
 }

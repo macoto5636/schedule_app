@@ -78,37 +78,31 @@ class NoticeChecking extends StatelessWidget {
   }
 }
 
-//
-//class SubNoticePage extends StatefulWidget{
-//  @override
-//  SubNoticePageState createState() => SubNoticePageState();
-//}
-//
-//class SubNoticePageState extends  State<SubNoticePage>{
-//  @override
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//      appBar: AppBar(
-//        leading: IconButton(
-//          icon: Icon(Icons.arrow_back_ios),
-//          onPressed: () => Navigator.of(context).pop(),
-//        ),
-//        title: Text("通知"),
-//        centerTitle: true,
-//      ),
-//      body: ListView.builder(
-//        itemBuilder: (BuildContext context, int index) {
-//          return ListTile(
-//            title: Text(context.watch<NoticeChecker>().listText[index]),
-//            trailing: NoticeChecking(i:index),
-//            onTap: () => context.read<NoticeChecker>().set(index),
-//          );
-//        },
-//        itemCount: context.watch<NoticeChecker>().listChecked.length,
-//      ),
-//    );
-//  }
-//}
+class NoticeText extends StatelessWidget {
+  const NoticeText({Key key}) : super(key: key);
 
-
-
+  @override
+  Widget build(BuildContext context) {
+    List<String> listText = context.watch<NoticeChecker>().listText;
+    List<bool> listCheck = context.watch<NoticeChecker>().listChecked;
+    String text = "";
+    for(int i = 0; i < listText.length; i++){
+      if(listCheck[i]){
+        text += listText[i];
+      }
+    }
+    return Container(
+      width: 200,
+//      padding: new EdgeInsets.all(5.0),
+      child: DefaultTextStyle(
+        style: TextStyle(color: Colors.black),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+        child: Text(
+          text,
+          textAlign: TextAlign.right,
+        ),
+      ),
+    );
+  }
+}
