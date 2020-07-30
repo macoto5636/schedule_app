@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
+
+import 'package:scheduleapp/schedule_detail.dart';
 
 
 class DayOfWeek{
@@ -33,7 +36,10 @@ class _TimeTableViewState extends State<TimeTableView>{
   ];
 
   //現在の日付
-  DateTime _currentDate = DateTime(2020,7,27);
+  DateTime _currentDate = DateTime.now();
+
+  //今日の日付
+  DateTime _todayDate = DateTime.now();
 
   //その日の予定
   List<int> _schedulesId = [];
@@ -42,10 +48,20 @@ class _TimeTableViewState extends State<TimeTableView>{
   List<DateTime> _schedulesEndDate = [];
   List<Color> _schedulesColor = [];
 
+  ScrollController _scrollController;
+
   @override
   void initState() {
     super.initState();
     _getSchedules();
+    _scrollController = ScrollController();
+
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
   }
 
   //現在の日付の予定取得
@@ -114,7 +130,20 @@ class _TimeTableViewState extends State<TimeTableView>{
     setState(() {
       _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day - n);
       widget.setCurrentDate(_currentDate.year.toString() + "年" + _currentDate.month.toString() + "月");
+      _getSchedules();
     });
+  }
+
+  //予定詳細ページへ移動
+  moveScheduleDetailPage(BuildContext context, int id){
+    //Navigator.of(context).pop();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) {
+          return ScheduleDetailPage(id);
+        },
+      ),
+    );
   }
 
   Widget _buildTitle(){
@@ -161,6 +190,7 @@ class _TimeTableViewState extends State<TimeTableView>{
   Widget _buildSingleChildScrollView(){
     return Container(
       child: SingleChildScrollView(
+        controller: _scrollController,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -170,7 +200,9 @@ class _TimeTableViewState extends State<TimeTableView>{
                 children: [
                   _buildBackMainContent(60.0),
                   for(int i=0;i<_schedulesId.length;i++)
-                    _buildSchedule(i, 350)
+                    _buildSchedule(i, 350),
+                  if(DateTime(_currentDate.year,_currentDate.month,_currentDate.day) == DateTime(_todayDate.year, _todayDate.month, _todayDate.day))
+                    _buildCurrentLine(),
                 ],
               ),
             )
@@ -228,7 +260,6 @@ class _TimeTableViewState extends State<TimeTableView>{
     );
   }
 
-
   //スケジュールのContainer
   Widget _buildSchedule(int num, double width){
     int scheduleHeight;
@@ -274,23 +305,49 @@ class _TimeTableViewState extends State<TimeTableView>{
         left: (cnt2 * (width/cnt)).toDouble(),
         height: scheduleHeight.toDouble(),
         width: width/cnt,
-        child: Container(
-          color: _schedulesColor[num],
-          //height: scheduleHeight.toDouble(),
-          //width: scheduleWidth,
-          child: Column(
-            children: [
-              Text(_schedulesTitle[num], style: TextStyle(color: Colors.white),),
-              Text(_schedulesStartDate[num].hour.toString().padLeft(2,'0') + ":" + _schedulesStartDate[num].minute.toString().padLeft(2,'0') + "〜" +
-                _schedulesEndDate[num].hour.toString().padLeft(2,'0') + ":" + _schedulesEndDate[num].minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white),),
-            ],
-          ),
+        child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: (){moveScheduleDetailPage(context, _schedulesId[num]);},
+            child:Container(
+              color: _schedulesColor[num],
+              //height: scheduleHeight.toDouble(),
+              //width: scheduleWidth,
+              child: Column(
+                children: [
+                  Text(_schedulesTitle[num], style: TextStyle(color: Colors.white),),
+                  Text(_schedulesStartDate[num].hour.toString().padLeft(2,'0') + ":" + _schedulesStartDate[num].minute.toString().padLeft(2,'0') + "〜" +
+                    _schedulesEndDate[num].hour.toString().padLeft(2,'0') + ":" + _schedulesEndDate[num].minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white),),
+                ],
+              ),
+            )
         )
+    );
+  }
+
+  //現在の時間帯に線を引く
+  Widget _buildCurrentLine(){
+    return Positioned(
+      top: (_todayDate.hour * 60 + _todayDate.minute).toDouble(),
+      left: 0.0,
+      child: Container(
+        width: 1000,
+        child: Divider(
+          color: Colors.red,
+          thickness: 3,
+        ),
+      )
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    //初期位置
+    if(DateTime(_currentDate.year,_currentDate.month,_currentDate.day) == DateTime(_todayDate.year, _todayDate.month, _todayDate.day)){
+      Timer(Duration(microseconds: 100), () => _scrollController.jumpTo((_todayDate.hour * 60).toDouble()));
+    }else{
+      Timer(Duration(microseconds: 100), () => _scrollController.jumpTo((_currentDate.hour * 60).toDouble()));
+    }
+
     return Container(
       child: Column(
         children: [
