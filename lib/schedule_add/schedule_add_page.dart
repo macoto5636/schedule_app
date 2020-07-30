@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:scheduleapp/network_utils/api.dart';
 
 import 'schedule_add_repeat_page.dart';
 import 'schedule_add_notice_page.dart';
@@ -47,10 +48,10 @@ enum Answers{
   NO
 }
 class ScheduleAddPageState extends State<ScheduleAddPage>{
-  var _titleController = TextEditingController();
-  var _placeController = TextEditingController();
-  var _urlController = TextEditingController();
-  var _memoController = TextEditingController();
+  var _titleController = TextEditingController(text: "title");
+  var _placeController = TextEditingController(text: "place");
+  var _urlController = TextEditingController(text: "url");
+  var _memoController = TextEditingController(text: "memo");
 
   DateTime now = DateTime.now();
   bool _active = false;
@@ -132,18 +133,9 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           IconButton(
             icon: Icon(Icons.check),
             onPressed: (){
-              var dataList = {
-                "title":_titleController.text,
-                "allDay":_active,
-                "stTime":st,
-                "edTime":ed,
-                "repeat":context.read<RepeatChecker>().checked,
-                "notice":context.read<NoticeChecker>().listChecked,
-                "color":context.read<ColorChecker>().listColor[context.read<ColorChecker>().checked],
-                "place":_placeController.text,
-                "url":_urlController.text,
-                "memo":_memoController.text,
-              };
+              saveData();
+              _clear();
+              Navigator.of(context).pop();
             },
           )
         ],
@@ -430,5 +422,27 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
               ),*/
       ],
     );
+  }
+
+  void saveData() async{
+    final data = {
+      "title":_titleController.text,
+      "all_day":_active,
+      "start_date":st,
+      "end_date":ed,
+      "repetition_flag":context.read<RepeatChecker>().flg,
+      "repetition":context.read<RepeatChecker>().checked,
+      "notification_flag":context.read<NoticeChecker>().flg,
+      "notification":context.read<NoticeChecker>().checked,
+      "color":context.read<ColorChecker>().listColor[context.read<ColorChecker>().checked].toString(),
+      "place":_placeController.text,
+      "url":_urlController.text,
+      "memo":_memoController.text,
+      "calendar_id":100,
+    };
+    print(data);
+    var result = await Network().postData(data, "schedules/store");
+
+    Navigator.pop(context);
   }
 }

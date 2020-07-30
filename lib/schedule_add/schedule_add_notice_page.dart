@@ -29,31 +29,43 @@ class SubNoticePage extends StatelessWidget{
 }
 
 class NoticeChecker with ChangeNotifier{
+  bool _flg = false;
   int _checked = 0;
   List<bool> _listChecked = [true, false, false, false, false, false, false];
-  List<String> _listText = ["なし", "予定の時刻", "５分前", "１５分前",
-    "３０分前", "１時間前", "１日前"];
+  List<String> _listText = [
+    "なし","予定の時刻", "５分前", "１５分前",
+    "３０分前", "１時間前", "１日前"
+  ];
 
+  bool get flg => _flg;
   int get checked => _checked;
   List<bool> get listChecked => _listChecked;
   List<String> get listText => _listText;
 
   void set(int i) {
-    if(_listChecked[i]){
-      _listChecked[i] = false;
+    if(_listChecked[i]){  //選択した項目がtrueのとき
+      _listChecked[i] = false;  //選択した項目をfalseにする
+      //チェック項目数が０になるとき
       if(_listChecked.every((element) => element == false)){
+        _flg = false;
         _listChecked[0] = true;
       }
-    }else{
-      if(i != 0 && _listChecked[0]){
-        _listChecked[0] = false;
-      }else if(i == 0){
+    }else{  //選択した項目がfalseのとき
+      if(i != 0){  //選択した項目が"なし"以外のとき
+        if(_listChecked[0]){ //"なし"が選択されているとき
+          _listChecked[0] = false;
+        }
+        _flg = true;
+      }else{  //選択した項目が"なし"のとき
+        //"なし"以外の項目をfalseにする
         for(int i = 1; i < listText.length; i++){
           _listChecked[i] = false;
         }
+        _flg = false;
       }
-      _listChecked[i] = true;
+      _listChecked[i] = true; //選択した項目をtrueにする
     }
+//    print(_flg);
     notifyListeners();
   }
 }

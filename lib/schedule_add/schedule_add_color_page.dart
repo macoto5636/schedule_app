@@ -38,8 +38,9 @@ class SubColorPage extends StatelessWidget{
 class ColorChecker with ChangeNotifier{
   int _checked = 6;
   List<bool> _listChecked = [false,false,false,false,false,false,true,false,false,false];
-  List<String> _listText = ["ピンク","レッド","オレンジ","イエロー","ライトグリーン","グリーン","ライトブルー"
-    ,"ブルー","インディゴ","パープル"
+  List<String> _listText = [
+    "ピンク","レッド","オレンジ","イエロー","ライトグリーン",
+    "グリーン","ライトブルー","ブルー","インディゴ","パープル"
   ];
   List<int> _listColor = [
     0xFFFF4081,0xFFFF5252,0xFFFF6E40, 0xFFFFFF00

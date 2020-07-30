@@ -29,18 +29,23 @@ class SubRepeatPage extends StatelessWidget{
 }
 
 class RepeatChecker with ChangeNotifier{
+  bool _flg = false;
   int _checked = 0;
   List<bool> _listChecked = [true,false,false,false,false];
   List<String> _listText = ["しない","毎日","毎週","毎月","毎年"];
 
+  bool get flg => _flg;
   int get checked => _checked;
   List<bool> get listChecked => _listChecked;
   List<String> get listText => _listText;
 
   void set(int i){
-    if(_listChecked[i]){
-
-    }else{
+    if(!_listChecked[i]){
+      if(i == 0){
+        _flg = false;
+      }else{
+        _flg = true;
+      }
       _listChecked[_checked] = false;
       _checked = i;
       _listChecked[i] = true;
