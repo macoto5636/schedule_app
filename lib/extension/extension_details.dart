@@ -96,9 +96,12 @@ class ExtensionDetailsPage extends StatelessWidget {
     );
   }
 
-  void extensionAdd(int id) {
+  void extensionAdd (int id) async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
     final json = jsonEncode(<String,String>{
-      "calendar_id" : "1",
+      "calendar_id" : calendarId.toString(),
       "extension_id" : id.toString()
     });
     postData(json);

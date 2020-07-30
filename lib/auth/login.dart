@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/auth/register.dart';
+import 'package:scheduleapp/main.dart';
 import 'package:scheduleapp/network_utils/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -107,7 +108,7 @@ class _LoginFormState extends State<LoginForm> {
       'password' : password
     };
 
-    var res = await Network().postData(data, 'login');
+    var res = await Network().authData(data, 'login');
     var body = json.decode(res.body);
     print(body);
 
@@ -115,15 +116,13 @@ class _LoginFormState extends State<LoginForm> {
       SharedPreferences localStorage = await SharedPreferences.getInstance();
       localStorage.setString('token', json.encode(body['token']));
       localStorage.setString('user', json.encode(body['user']));
-      Navigator.of(context).pop();
-      debugPrint('ログイン成功ecc');
-//
-//      Navigator.push(
-//        context,
-//        MaterialPageRoute(
-//            builder: (context) => Home()
-//        ),
-//      );
+      localStorage.setString('calendar',json.encode(body['calendar']));
+
+      Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context) => MyHomePage()
+      ));
+
+      debugPrint('ログイン成功');
     }else{
       debugPrint('ログイン失敗');
     }
@@ -132,7 +131,7 @@ class _LoginFormState extends State<LoginForm> {
 
 //新規登録ページへ移動
 moveRegisterForm(BuildContext context){
-  Navigator.of(context).pop();
+//  Navigator.of(context).pop();
   Navigator.of(context).push(
     MaterialPageRoute(
       builder: (context) {

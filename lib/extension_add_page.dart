@@ -34,6 +34,7 @@ class ExtensionAllList extends StatefulWidget {
 class _ExtensionAllListState extends State<ExtensionAllList> {
   List extensionList;
   var token;
+  var calendarId;
 
   @override
   void initState() {
@@ -46,6 +47,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
 //    ローカルストレージに保存している認証トークンを取り出している
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     token = jsonDecode(localStorage.getString('token'))['token'];
+    calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
 //    HTTPリクエストのヘッダー部分
 //    トークンをセットしている
@@ -55,7 +57,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
       'Authorization': "Bearer $token"
     };
 
-    final String url = "http://10.0.2.2:8000/api/extension/addlist";
+    final String url = "http://10.0.2.2:8000/api/extension/addlist/$calendarId";
     http.Response response = await http.get(
         url,
         headers: requestHeaders

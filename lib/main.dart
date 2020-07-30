@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:scheduleapp/extention_drawer.dart';
+import 'package:scheduleapp/calendar/calendarview.dart';
+import 'package:scheduleapp/first_boot_page.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/setting_page.dart';
@@ -12,6 +17,8 @@ import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
+import 'package:scheduleapp/auth/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   //runApp(MyApp());
@@ -24,11 +31,14 @@ void main() {
     child:MyApp(),
   )
   );
+
 }
 
 class MyApp extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
+//    WidgetsBinding.instance.addPostFrameCallback((_) { _judgeAuth(context); });
     return MaterialApp(
       title: 'schedule_app',
       theme: ThemeData(
@@ -36,7 +46,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: '2020年'),
+//      home: MyHomePage(title: '2020年'),
+        home: SplashScreen(),
     );
   }
 }
