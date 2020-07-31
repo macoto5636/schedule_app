@@ -18,11 +18,12 @@ class DayOfWeek{
 class Schedules{
   int id;
   String title;
+  bool allDay;
   DateTime startDate;
   DateTime endDate;
   Color color;
 
-  Schedules(this.id, this.title, this.startDate, this.endDate, this.color);
+  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color);
 }
 
 class TimeTableView extends StatefulWidget {
@@ -51,17 +52,18 @@ class _TimeTableViewState extends State<TimeTableView>{
   //_currentDateの集まり
   List<DateTime> _dates = [];
 
-  //今日の日付
-  DateTime _todayDate = DateTime.now();
 
   String _headerText = "";
 
   //その日の予定
-//  List<int> _schedulesId = [];
-//  List<String> _schedulesTitle = [];
-//  List<DateTime> _schedulesStartDate = [];
-//  List<DateTime> _schedulesEndDate = [];
-//  List<Color> _schedulesColor = [];
+  List<int> _schedulesId = [];
+  List<String> _schedulesTitle = [];
+  List<bool> _schedulesAllDay = [];
+  List<DateTime> _schedulesStartDate = [];
+  List<DateTime> _schedulesEndDate = [];
+  List<Color> _schedulesColor = [];
+
+  List<Schedules> _schedules = [];
 
   ScrollController _scrollController;
   PageController _pageController = PageController(initialPage: 1);
@@ -75,6 +77,8 @@ class _TimeTableViewState extends State<TimeTableView>{
     _dates.add(DateTime(_currentDate.year, _currentDate.month, _currentDate.day - 1));
     _dates.add(_currentDate);
     _dates.add(DateTime(_currentDate.year, _currentDate.month, _currentDate.day + 1));
+
+    _getSchedules();
 
     _headerText = _currentDate.day.toString() + "日" + "(" + dayOfWeek[_currentDate.weekday -1].name + ")";
 
@@ -90,75 +94,61 @@ class _TimeTableViewState extends State<TimeTableView>{
 
 
   //現在の日付の予定取得
-  Future<List<Schedules>> _getSchedules(DateTime date) async{
-    var url = "http://10.0.2.2:8000/api/schedules/start_date/" +
-        date.year.toString() + "-" + date.month.toString().padLeft(2, '0') + "-" + date.day.toString().padLeft(2,'0');
+  void _getSchedules() async{
+    //var url = "http://10.0.2.2:8000/api/schedules/start_date/" +
+    //    date.year.toString() + "-" + date.month.toString().padLeft(2, '0') + "-" + date.day.toString().padLeft(2,'0');
+    var url = "http://10.0.2.2:8000/api/calendar/" + "1";
     print(url);
-
-    List<int> schedulesId = [];
-    List<String> schedulesTitle = [];
-    List<DateTime> schedulesStartDate = [];
-    List<DateTime> schedulesEndDate = [];
-    List<Color> schedulesColor = [];
-
-    List<Schedules> list = await http.get(url).then((response){
+    await http.get(url).then((response){
       print("Response status: ${response.statusCode}");
-      List<Schedules> schedules = [];
-      if(response.statusCode == 200) {
         List list = json.decode(response.body);
 
-        //setState(() {
+        setState(() {
         //id取得
-        schedulesId = list.map<int>((value) {
+        _schedulesId = list.map<int>((value) {
           return value['id'];
         }).toList();
 
-
         //タイトル取得
-        schedulesTitle = list.map<String>((value) {
+        _schedulesTitle = list.map<String>((value) {
           return value['title'];
         }).toList();
 
+        //all dayか否か
+        _schedulesAllDay = list.map<bool>((value){
+          if(value['all_day']==0){
+            return false;
+          }else{
+            return true;
+          }
+        }).toList();
+
         //開始日時取得
-        schedulesStartDate = list.map<DateTime>((value) {
+        _schedulesStartDate = list.map<DateTime>((value) {
           return DateTime.parse(value['start_date']);
         }).toList();
 
         //終了日時取得
-        schedulesEndDate = list.map<DateTime>((value) {
+        _schedulesEndDate = list.map<DateTime>((value) {
           return DateTime.parse(value['end_date']);
         }).toList();
 
         //色の取得
-        schedulesColor = list.map<Color>((value) {
+        _schedulesColor = list.map<Color>((value) {
           return Color(int.parse(value['color']));
         }).toList();
 
-        for (int i = 0; i < schedulesId.length; i++) {
-          schedules.add(Schedules(
-              schedulesId[i], schedulesTitle[i], schedulesStartDate[i],
-              schedulesEndDate[i], schedulesColor[i]));
+        for (int i = 0; i < _schedulesId.length; i++) {
+          _schedules.add(Schedules(
+              _schedulesId[i], _schedulesTitle[i], _schedulesAllDay[i], _schedulesStartDate[i], _schedulesEndDate[i], _schedulesColor[i]));
         }
-      }
-
-        return schedules;
-      //});
-    }).catchError((e){
-      print(e);
-      List<Schedules> list = [];
-      return list;
-    }
-    );
-
-    return list;
+      });
+    });
   }
 
   //日が切り替わったときの処理
   void onPageChanged(pageId){
     print("pageId:" + pageId.toString());
-    for(int i=0; i < _dates.length; i++){
-      //print(i.toString() + ":" + _dates[i].toString());
-    }
 
     if(pageId == _dates.length -1){
       DateTime tempDate = _dates[_dates.length-1];
@@ -210,14 +200,14 @@ class _TimeTableViewState extends State<TimeTableView>{
     return minute;
   }
 
-//  //日付変更時
-//  void _changeCurrentDate(int n){
-//    setState(() {
-//      _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day - n);
-//      widget.setCurrentDate(_currentDate.year.toString() + "年" + _currentDate.month.toString() + "月");
-//      _getSchedules(_currentDate);
-//    });
-//  }
+  //DateTimeのhour以降を0にする
+  DateTime getDateShaping(DateTime datetime){
+    int year = datetime.year;
+    int month = datetime.month;
+    int day = datetime.day;
+
+    return DateTime(year,month,day);
+  }
 
   //予定詳細ページへ移動
   moveScheduleDetailPage(BuildContext context, int id){
@@ -273,55 +263,36 @@ class _TimeTableViewState extends State<TimeTableView>{
     icon: const Icon(Icons.chevron_right),
   );
 
-  //終日
-  Widget _buildAllDay(){
-    return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: Colors.grey,
-            width: 0,
-          ),
-          bottom: BorderSide(
-            color: Colors.grey,
-            width: 0,
-          )
-        )
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60.0,
-            child: Text("終日", textAlign: TextAlign.center,),
-          ),
-        ],
-      )
-    );
-  }
-
   //ここからしたのやつ合体してる
   Widget _buildSingleChildScrollView(DateTime date){
+    List<Schedules> scheduleListNotAllDay = [];
+    List<Schedules> scheduleListAllDay = [];
+    for(int i=0; i < _schedules.length; i++){
+      if(getDateShaping(_schedules[i].startDate) == getDateShaping(date)){
+        if(_schedules[i].allDay){
+          scheduleListAllDay.add(_schedules[i]);
+        }else{
+          scheduleListNotAllDay.add(_schedules[i]);
+        }
+      }
+    }
 
-    //List<Schedules> schedulesList = [];
-    //schedulesList = _getSchedules(date).toList;
-    return FutureBuilder(
-      future: _getSchedules(date),
-      builder: (BuildContext context, AsyncSnapshot<List<Schedules>> scheduleList){
-        return Container(
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                _buildHourContainer(60.0),
-                Expanded(
-                  child: Stack(
+    return Container(
+      child:Column(
+          children:[
+            _buildAllDay(scheduleListAllDay),
+            Expanded(child:SingleChildScrollView(
+              controller: _scrollController,
+              child:Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  _buildHourContainer(60.0),
+                  Expanded(
+                    child: Stack(
                     children: [
                       _buildBackMainContent(60.0),
-                      if(scheduleList.hasData)
-                        for(int i = 0; i < scheduleList.data.length; i++)
-                          _buildSchedule(i, 350, scheduleList.data),
+                      for(int i = 0; i < scheduleListNotAllDay.length; i++)
+                        _buildSchedule(i, 350, scheduleListNotAllDay),
                       if(DateTime(_currentDate.year, _currentDate.month,
                           _currentDate.day) == DateTime(
                           date.year, date.month, date.day))
@@ -331,9 +302,60 @@ class _TimeTableViewState extends State<TimeTableView>{
                 )
               ],
             ),
-          ),
+          )
+              )]),
         );
-      },
+  }
+
+  //終日
+  Widget _buildAllDay(List<Schedules> scheduleList){
+    return Container(
+        height: 60,
+        decoration: BoxDecoration(
+            border: Border(
+                top: BorderSide(
+                  color: Colors.grey,
+                  width: 0,
+                ),
+                bottom: BorderSide(
+                  color: Colors.grey,
+                  width: 0,
+                )
+            )
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 60.0,
+              child: Text("終日", textAlign: TextAlign.center,),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child:Row(
+                children: [
+                  for(int i=0;i<scheduleList.length; i++)
+                    i
+                ].map((index){
+                return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: (){moveScheduleDetailPage(context, scheduleList[index].id);},
+                    child:Container(
+                    height: 30,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: scheduleList[index].color),
+                      borderRadius: BorderRadius.circular(8),
+                      color: scheduleList[index].color,
+                    ),
+                  child: Padding(
+                    padding: EdgeInsets.all(3.0),
+                    child: Text(scheduleList[index].title, style: TextStyle(color: Colors.white), textAlign: TextAlign.center,),
+                  )
+                )
+                );
+            }).toList(),
+            )
+            )],
+        )
     );
   }
 
@@ -455,7 +477,7 @@ class _TimeTableViewState extends State<TimeTableView>{
   //現在の時間帯に線を引く
   Widget _buildCurrentLine(){
     return Positioned(
-      top: (_todayDate.hour * 60 + _todayDate.minute - 5).toDouble(),
+      top: (_currentDate.hour * 60 + _currentDate.minute - 5).toDouble(),
       left: 0.0,
       child: Container(
         width: 1000,
@@ -470,17 +492,12 @@ class _TimeTableViewState extends State<TimeTableView>{
   @override
   Widget build(BuildContext context) {
     //初期位置
-    if(DateTime(_currentDate.year,_currentDate.month,_currentDate.day) == DateTime(_todayDate.year, _todayDate.month, _todayDate.day)){
-      Timer(Duration(microseconds: 100), () => _scrollController.jumpTo((_todayDate.hour * 60).toDouble()));
-    }else{
-      Timer(Duration(microseconds: 100), () => _scrollController.jumpTo((_currentDate.hour * 60).toDouble()));
-    }
+    Timer(Duration(microseconds: 100), () => _scrollController.jumpTo((_currentDate.hour * 60).toDouble()));
 
     return Container(
       child: Column(
         children: [
           _buildTitle(),
-          _buildAllDay(),
           Expanded(
             child: PageView(
               onPageChanged: onPageChanged,

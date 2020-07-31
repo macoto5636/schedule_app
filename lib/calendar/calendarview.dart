@@ -270,9 +270,11 @@ class _CalendarState extends State<CalendarView>{
             Container(
               height: size.height / 2,
               child:
-              Column(
-                children: _buildEvent()
-              ),
+                SingleChildScrollView(
+                child:Column(
+                  children: _buildEvent()
+                )
+                ),
             )
           ],
         ),
