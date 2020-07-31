@@ -9,46 +9,17 @@ import 'schedule_add_repeat_page.dart';
 import 'schedule_add_notice_page.dart';
 import 'schedule_add_color_page.dart';
 
-class ScheduleAdd extends StatelessWidget{
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        initialRoute: '/',
-        routes: <String,WidgetBuilder>{
-          '/':(BuildContext context) => new ScheduleAddPage(),
-          '/repeat':(BuildContext context) => new SubRepeatPage(),
-          '/notice':(BuildContext context) => new SubNoticePage(),
-          '/color':(BuildContext context) => new SubColorPage(),
-        }
-    );
-//    return MultiProvider(
-//        providers: [
-//          ChangeNotifierProvider(create: (_) => RepeatChecker()),
-//          ChangeNotifierProvider(create: (_) => NoticeChecker()),
-//          ChangeNotifierProvider(create: (_) => ColorChecker()),
-//        ],
-//        child: MaterialApp(
-//            initialRoute: '/',
-//            routes: <String,WidgetBuilder>{
-//              '/':(BuildContext context) => new ScheduleAddPage(),
-//              '/repeat':(BuildContext context) => new SubRepeatPage(),
-//              '/notice':(BuildContext context) => new SubNoticePage(),
-//              '/color':(BuildContext context) => new SubColorPage(),
-//            }
-//        )
-//    );
-  }
-}
-class ScheduleAddPage extends  StatefulWidget{
-  @override
-  ScheduleAddPageState createState() => ScheduleAddPageState();
-}
 enum Answers{
   YES,
   NO
 }
+
+class ScheduleAddPage extends  StatefulWidget{
+  @override
+  ScheduleAddPageState createState() => ScheduleAddPageState();
+}
 class ScheduleAddPageState extends State<ScheduleAddPage>{
-  var _titleController = TextEditingController(text: "title");
+  var _titleController = TextEditingController(text: "");
   var _placeController = TextEditingController(text: "place");
   var _urlController = TextEditingController(text: "url");
   var _memoController = TextEditingController(text: "memo");
@@ -57,15 +28,17 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
   bool _active = false;
   var iconSIze = 25.0;
   DateTime i;
-  DateTime st;
+  DateTime st = DateTime.now();
+  DateTime st1 = DateTime.now().add(new Duration(hours: 1));
   String stText = DateFormat('yyyy/MM/dd HH:mm')
       .format(DateTime.now())
       .toString();
-  DateTime ed;
+  DateTime ed = DateTime.now().add(new Duration(hours: 1));
   String edText = DateFormat('yyyy/MM/dd HH:mm')
-      .format(DateTime.now())
+      .format(DateTime.now().add(new Duration(hours: 1)))
       .toString();
 
+  //
   void _onChanged(bool value) {
     setState(() {
       if (_active) {
@@ -87,7 +60,6 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
     var value = await showDialog(
       context: context,
       builder: (BuildContext context) => new AlertDialog(
-//        title: new Text('AlertDialog'),
         content: new Text('入力した内容は削除されます。キャンセルしてもよろしいですか？'),
         actions: <Widget>[
           new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context, Answers.YES);},),
@@ -106,19 +78,16 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
         break;
     }
   }
+  //providerで保持している新しい予定の値を初期化
   void _clear(){
-    _titleController = TextEditingController(text: '');
-    _placeController = TextEditingController(text: '');
-    _urlController = TextEditingController(text: '');
-    _memoController = TextEditingController(text: '');
-    context.read<ColorChecker>().set(0);
+    context.read<ColorChecker>().set(6);
     context.read<RepeatChecker>().set(0);
     context.read<NoticeChecker>().set(0);
   }
+
+  //新しい予定画面
   @override
   Widget build(BuildContext context) {
-    st = now;
-    ed = now;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -133,9 +102,21 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           IconButton(
             icon: Icon(Icons.check),
             onPressed: (){
-              saveData();
-              _clear();
-              Navigator.of(context).pop();
+              if(_titleController.text == ""){
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) => new AlertDialog(
+                    content: new Text('タイトルを入力してください'),
+                    actions: <Widget>[
+                      new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context);},),
+                    ],
+                  ),
+                );
+              }else{
+                saveData();
+                _clear();
+                Navigator.of(context).pop();
+              }
             },
           )
         ],
@@ -158,16 +139,15 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
         Divider(color: Colors.black,),
         SwitchListTile(
           value: _active,
-          activeColor: Colors.orange,
-          activeTrackColor: Colors.red,
-          inactiveThumbColor: Colors.blue,
-          inactiveTrackColor: Colors.grey,
+          activeColor: Colors.blue,
+          activeTrackColor: Colors.lightBlueAccent,
+          inactiveThumbColor: Colors.grey,
+          inactiveTrackColor: Colors.black26,
           secondary: new Icon(
             Icons.refresh,
             size: iconSIze,
           ),
           title: Text('終日'),
-          //subtitle: Text('サブタイトル'),
           onChanged: _onChanged,
         ),
         ListTile(
@@ -178,70 +158,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           title: Text("開始"),
           trailing: Text(stText),
           onTap: () {
-            if (_active) {
-              DatePicker.showDatePicker(context,
-                  showTitleActions: true,
-                  minTime: DateTime(now.year - 3, now.month, now.day),
-                  maxTime: DateTime(now.year + 3, now.month, now.day),
-                  theme: DatePickerTheme(
-                      headerColor: Colors.white,
-                      backgroundColor: Colors.white,
-                      itemStyle: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18),
-                      doneStyle: TextStyle(
-                          color: Colors.black, fontSize: 16)),
-                  onChanged: (date) {},
-                  onConfirm: (date) {
-                    setState(() {
-                      st = date;
-                      stText = DateFormat('yyyy/MM/dd').format(st).toString();
-                      if (st.year >= ed.year && st.month >= ed.month &&
-                          st.day >= ed.day) {
-                        ed = st;
-                        edText = DateFormat('yyyy/MM/dd')
-                            .format(st)
-                            .toString();
-                      }
-                    });
-                  },
-                  currentTime: st,
-                  locale: LocaleType.jp);
-            } else {
-              DatePicker.showDateTimePicker(context,
-                  showTitleActions: true,
-                  minTime: DateTime(now.year - 3, now.month, now.day),
-                  maxTime: DateTime(now.year + 3, now.month, now.day),
-                  theme: DatePickerTheme(
-                      headerColor: Colors.white,
-                      backgroundColor: Colors.white,
-                      itemStyle: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18),
-                      doneStyle: TextStyle(
-                          color: Colors.black, fontSize: 16)),
-                  onChanged: (date) {},
-                  onConfirm: (date) {
-                    setState(() {
-                      st = date;
-                      stText = DateFormat('yyyy/MM/dd HH:mm')
-                          .format(st)
-                          .toString();
-                      if (st.year >= ed.year && st.month >= ed.month &&
-                          st.day >= ed.day && st.hour >= ed.hour &&
-                          st.minute >= ed.minute) {
-                        ed = st;
-                        edText = DateFormat('yyyy/MM/dd HH:mm')
-                            .format(st)
-                            .toString();
-                      }
-                    });
-                  },
-                  currentTime: st,
-                  locale: LocaleType.jp);
-            }
+            st = showDateTime(_active,st,true);
           },
         ),
         ListTile(
@@ -252,96 +169,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
             title: Text("終了"),
             trailing: Text(edText),
             onTap: () {
-              if (_active) {
-                DatePicker.showDatePicker(context,
-                    showTitleActions: true,
-                    minTime: DateTime(now.year - 3, now.month, now.day),
-                    maxTime: DateTime(now.year + 3, now.month, now.day),
-                    theme: DatePickerTheme(
-                        headerColor: Colors.white,
-                        backgroundColor: Colors.white,
-                        itemStyle: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                        doneStyle: TextStyle(
-                            color: Colors.black, fontSize: 16)),
-                    onChanged: (date) {},
-                    onConfirm: (date) {
-                      if (st.year >= date.year && date.month >= date.month &&
-                          st.day >= date.day && st.hour >= date.hour &&
-                          st.minute >= date.minute) {
-                        showDialog(
-                            context: context,
-                            builder: (_) {
-                              return AlertDialog(
-                                content: Text("終了が開始以前の時刻になっています"),
-                                actions: <Widget>[
-                                  FlatButton(
-                                    child: Text("OK"),
-                                    onPressed: () => Navigator.pop(context),
-                                  )
-                                ],
-                              );
-                            }
-                        );
-                      } else {
-                        setState(() {
-                          ed = date;
-                          edText = DateFormat('yyyy/MM/dd')
-                              .format(ed)
-                              .toString();
-                        });
-                      }
-                    },
-                    currentTime: ed,
-                    locale: LocaleType.jp);
-              } else {
-                DatePicker.showDateTimePicker(context,
-                    showTitleActions: true,
-                    minTime: DateTime(now.year - 3, now.month, now.day),
-                    maxTime: DateTime(now.year + 3, now.month, now.day),
-                    theme: DatePickerTheme(
-                        headerColor: Colors.white,
-                        backgroundColor: Colors.white,
-                        itemStyle: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18),
-                        doneStyle: TextStyle(
-                            color: Colors.black, fontSize: 16)),
-                    onChanged: (date) {},
-                    onConfirm: (date) {
-                      if (st.year >= date.year && date.month >= date.month &&
-                          st.day >= date.day && st.hour >= date.hour &&
-                          st.minute >= date.minute) {
-                        showDialog(
-                            context: context,
-                            builder: (_) {
-                              return AlertDialog(
-                                content: Text("終了が開始以前の時刻になっています"),
-                                actions: <Widget>[
-                                  FlatButton(
-                                    child: Text("OK"),
-                                    onPressed: () => Navigator.pop(context),
-                                  )
-                                ],
-                              );
-                            }
-                        );
-                      } else {
-                        setState(() {
-                          ed = date;
-                          edText = DateFormat('yyyy/MM/dd HH:mm')
-                              .format(ed)
-                              .toString();
-                        });
-                      }
-                      //});
-                    },
-                    currentTime: ed,
-                    locale: LocaleType.jp);
-              }
+              ed = showDateTime(_active,ed,false);
             }
         ),
         ListTile(
@@ -424,12 +252,145 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
     );
   }
 
+  //開始、終了時刻のdatetimepickerを表示する関数
+  DateTime showDateTime(bool allDayActive, DateTime dateTime, bool stFlag) {
+    if(allDayActive){
+      DatePicker.showDatePicker(context,
+          showTitleActions: true,
+          minTime: DateTime(dateTime.year - 3, dateTime.month, dateTime.day),
+          maxTime: DateTime(dateTime.year + 3, dateTime.month, dateTime.day),
+          theme: DatePickerTheme(
+              headerColor: Colors.white,
+              backgroundColor: Colors.white,
+              itemStyle: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18
+              ),
+              doneStyle: TextStyle(
+                  color: Colors.black, fontSize: 16
+              )
+          ),
+          onChanged: (date) {},
+          onConfirm: (date) {
+            print(st);
+            print(date);
+            if(stFlag){
+              st = date;
+              setState(() {
+                stText = DateFormat('yyyy/MM/dd').format(st).toString();
+                if (date.compareTo(ed) > 0) {
+                  ed = st.add(new Duration(hours: 1));
+                  edText = DateFormat('yyyy/MM/dd')
+                      .format(ed)
+                      .toString();
+                }
+              });
+            } else {
+              if (st.compareTo(date) > 0) {
+                showDialog(
+                    context: context,
+                    builder: (_) {
+                      return AlertDialog(
+                        content: Text("終了が開始以前の時刻になっています"),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text("OK"),
+                            onPressed: () => Navigator.pop(context),
+                          )
+                        ],
+                      );
+                    }
+                );
+              } else {
+                setState(() {
+                  ed = date;
+                  edText = DateFormat('yyyy/MM/dd')
+                      .format(ed)
+                      .toString();
+                });
+              }
+            }
+          },
+          currentTime: dateTime,
+          locale: LocaleType.jp
+      );
+    }else{
+      DatePicker.showDateTimePicker(context,
+          showTitleActions: true,
+          minTime: DateTime(dateTime.year - 3, dateTime.month, dateTime.day),
+          maxTime: DateTime(dateTime.year + 3, dateTime.month, dateTime.day),
+          theme: DatePickerTheme(
+              headerColor: Colors.white,
+              backgroundColor: Colors.white,
+              itemStyle: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18
+              ),
+              doneStyle: TextStyle(
+                  color: Colors.black, fontSize: 16
+              )
+          ),
+          onChanged: (date) {},
+          onConfirm: (date) {
+            if(stFlag){
+              setState(() {
+                st = date;
+                stText = DateFormat('yyyy/MM/dd HH:mm')
+                    .format(st)
+                    .toString();
+                if (date.compareTo(ed) > 0) {
+                  ed = st.add(new Duration(hours: 1));
+                  edText = DateFormat('yyyy/MM/dd HH:mm')
+                      .format(ed)
+                      .toString();
+                }
+              });
+            }else{
+              if (st.compareTo(date) > 0) {
+                showDialog(
+                    context: context,
+                    builder: (_) {
+                      return AlertDialog(
+                        content: Text("終了が開始以前の時刻になっています"),
+                        actions: <Widget>[
+                          FlatButton(
+                            child: Text("OK"),
+                            onPressed: () => Navigator.pop(context),
+                          )
+                        ],
+                      );
+                    }
+                );
+              } else {
+                setState(() {
+                  ed = date;
+                  edText = DateFormat('yyyy/MM/dd HH:mm')
+                      .format(ed)
+                      .toString();
+                });
+              }
+            }
+          },
+          currentTime: dateTime,
+          locale: LocaleType.jp
+      );
+    }
+    return dateTime;
+  }
+
+  //入力された新しい予定をデータベースに登録する
   void saveData() async{
     final data = {
       "title":_titleController.text,
       "all_day":_active,
-      "start_date":st,
-      "end_date":ed,
+      "start_date":DateFormat('yyyy-MM-dd HH:mm')
+          .format(st)
+          .toString(),
+      "end_date":DateFormat('yyyy-MM-dd HH:mm')
+          .format(ed)
+          .toString(),
       "repetition_flag":context.read<RepeatChecker>().flg,
       "repetition":context.read<RepeatChecker>().checked,
       "notification_flag":context.read<NoticeChecker>().flg,
@@ -438,11 +399,9 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
       "place":_placeController.text,
       "url":_urlController.text,
       "memo":_memoController.text,
-      "calendar_id":100,
+      "calendar_id":1,
     };
     print(data);
     var result = await Network().postData(data, "schedules/store");
-
-    Navigator.pop(context);
   }
 }

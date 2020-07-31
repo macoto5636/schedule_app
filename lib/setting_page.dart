@@ -17,15 +17,16 @@ class SettingPage extends StatelessWidget{
   }
   List<Widget> listTiles = <Widget>[
     Container(
+      margin: EdgeInsets.only(top:30,left:15),
+      child: Text(
+        "基本設定",
+//          style: TextStyle(fontSize:25, fontWeight: FontWeight.bold),
+      ),
+    ),
+    Container(
       decoration: new BoxDecoration(
         border: new Border(
           bottom: new BorderSide(color: Colors.black),
-        ),
-      ),
-      child: ListTile(
-        title: Text(
-          "基本設定",
-//          style: TextStyle(fontSize:25, fontWeight: FontWeight.bold),
         ),
       ),
     ),
@@ -59,17 +60,17 @@ class SettingPage extends StatelessWidget{
           title: Text('起動時画面'),
         )
     ),
-    Divider(),
+    Container(
+      margin: EdgeInsets.only(top:50,left:15),
+      child: Text(
+          "カレンダー",
+//          style: TextStyle(fontSize:25, fontWeight: FontWeight.bold),
+        ),
+    ),
     Container(
       decoration: new BoxDecoration(
         border: new Border(
           bottom: new BorderSide(color: Colors.black),
-        ),
-      ),
-      child: ListTile(
-        title: Text(
-          "カレンダー",
-//          style: TextStyle(fontSize:25, fontWeight: FontWeight.bold),
         ),
       ),
     ),
