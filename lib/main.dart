@@ -160,6 +160,9 @@ class _MyHomePageState extends State<MyHomePage> {
       }else{
         _page = 1;
       }
+      setState(() {
+        currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
+      });
     }
 
   }
