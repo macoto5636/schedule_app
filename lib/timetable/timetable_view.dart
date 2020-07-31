@@ -95,8 +95,6 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   //現在の日付の予定取得
   void _getSchedules() async{
-    //var url = "http://10.0.2.2:8000/api/schedules/start_date/" +
-    //    date.year.toString() + "-" + date.month.toString().padLeft(2, '0') + "-" + date.day.toString().padLeft(2,'0');
     var url = "http://10.0.2.2:8000/api/calendar/" + "1";
     print(url);
     await http.get(url).then((response){
@@ -329,32 +327,36 @@ class _TimeTableViewState extends State<TimeTableView>{
               width: 60.0,
               child: Text("終日", textAlign: TextAlign.center,),
             ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child:Row(
-                children: [
-                  for(int i=0;i<scheduleList.length; i++)
-                    i
-                ].map((index){
-                return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: (){moveScheduleDetailPage(context, scheduleList[index].id);},
-                    child:Container(
-                    height: 30,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: scheduleList[index].color),
-                      borderRadius: BorderRadius.circular(8),
-                      color: scheduleList[index].color,
-                    ),
-                  child: Padding(
-                    padding: EdgeInsets.all(3.0),
-                    child: Text(scheduleList[index].title, style: TextStyle(color: Colors.white), textAlign: TextAlign.center,),
-                  )
-                )
-                );
-            }).toList(),
+            Expanded(
+              child:SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child:Row(
+                  children: [
+                    for(int i=0;i<scheduleList.length; i++)
+                      i
+                  ].map((index){
+                  return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: (){moveScheduleDetailPage(context, scheduleList[index].id);},
+                      child:Container(
+                        margin: EdgeInsets.all(2.0),
+                        height: 30,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: scheduleList[index].color),
+                          borderRadius: BorderRadius.circular(8),
+                          color: scheduleList[index].color,
+                        ),
+                      child: Padding(
+                        padding: EdgeInsets.all(3.0),
+                        child: Text(scheduleList[index].title, style: TextStyle(color: Colors.white), textAlign: TextAlign.center,),
+                      )
+                     )
+                  );
+              }).toList(),
+              )
+              )
             )
-            )],
+          ],
         )
     );
   }
