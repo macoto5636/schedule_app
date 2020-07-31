@@ -42,6 +42,7 @@ class _CalendarState extends State<CalendarView>{
   //カレンダーの予定
   List<int> _schedulesId = [];
   List<String> _schedulesTitle = [];
+  List<bool> _schedulesAllDay = [];
   List<DateTime> _schedulesStartDate = [];
   List<DateTime> _schedulesEndDate = [];
   List<Color> _schedulesColor = [];
@@ -105,6 +106,15 @@ class _CalendarState extends State<CalendarView>{
       //タイトル取得
       _schedulesTitle = list.map<String>((value){
         return value['title'];
+      }).toList();
+
+      //all dayか否か
+      _schedulesAllDay = list.map<bool>((value){
+        if(value['all_day']==0){
+          return false;
+        }else{
+          return true;
+        }
       }).toList();
 
       //開始日時取得
@@ -301,9 +311,15 @@ class _CalendarState extends State<CalendarView>{
               children: <Widget>[
                 Container(
                   padding: EdgeInsets.all(10.0),
-                  child:
-                    Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
-                      + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0')),
+                  child: Column(
+                      children: [
+                        if(_schedulesAllDay[i])
+                          Text(" 終日 "),
+                        if(!_schedulesAllDay[i])
+                          Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
+                              + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0')),
+                      ],
+                    )
                 ),
                 Container(
                   padding: EdgeInsets.all(10.0),
