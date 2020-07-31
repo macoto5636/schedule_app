@@ -203,7 +203,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
+      child: SingleChildScrollView(
+        child:Column(
         children: [
           Padding(
             padding: EdgeInsets.all(6.0),
@@ -243,8 +244,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
               )
             ],
           ),
-
         ],
+      )
       ),
     );
   }
