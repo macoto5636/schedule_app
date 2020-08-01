@@ -27,8 +27,6 @@ class Network{
   postData(data, apiUrl) async {
     var fullUrl = _url + apiUrl;
     await _getToken();
-    print(data);
-    print(fullUrl);
     return await http.post(
         fullUrl,
         body: jsonEncode(data),
@@ -40,7 +38,6 @@ class Network{
   getData(apiUrl) async {
     var fullUrl = _url + apiUrl;
     await _getToken();
-    print(fullUrl);
     return await http.get(
         fullUrl,
         headers: _setHeaders()
