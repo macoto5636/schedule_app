@@ -29,18 +29,23 @@ class SubRepeatPage extends StatelessWidget{
 }
 
 class RepeatChecker with ChangeNotifier{
+  bool _flg = false;
   int _checked = 0;
   List<bool> _listChecked = [true,false,false,false,false];
   List<String> _listText = ["しない","毎日","毎週","毎月","毎年"];
 
+  bool get flg => _flg;
   int get checked => _checked;
   List<bool> get listChecked => _listChecked;
   List<String> get listText => _listText;
 
   void set(int i){
-    if(_listChecked[i]){
-
-    }else{
+    if(!_listChecked[i]){
+      if(i == 0){
+        _flg = false;
+      }else{
+        _flg = true;
+      }
       _listChecked[_checked] = false;
       _checked = i;
       _listChecked[i] = true;
@@ -69,33 +74,12 @@ class RepeatChecking extends StatelessWidget {
   }
 }
 
-//class SubRepeatPage extends StatefulWidget{
-//  @override
-//  SubRepeatPageState createState() => SubRepeatPageState();
-//}
-//
-//class SubRepeatPageState extends  State<SubRepeatPage>{
-//  @override
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//        appBar: AppBar(
-//          leading: IconButton(
-//            icon: Icon(Icons.arrow_back_ios),
-//            onPressed: () => Navigator.of(context).pop(),
-//          ),
-//          title: Text("繰り返し"),
-//          centerTitle: true,
-//        ),
-//        body: ListView.builder(
-//          itemBuilder: (BuildContext context, int index) {
-//            return ListTile(
-//              title: Text(context.watch<RepeatChecker>().listText[index]),
-//              trailing: RepeatChecking(i:index),
-//              onTap: () => context.read<RepeatChecker>().set(index),
-//            );
-//          },
-//          itemCount: context.watch<RepeatChecker>().listChecked.length,
-//        )
-//    );
-//  }
-//}
+class RepeatText extends StatelessWidget {
+  const RepeatText({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(context.watch<RepeatChecker>().listText[context.watch<RepeatChecker>().checked]);
+  }
+}
+

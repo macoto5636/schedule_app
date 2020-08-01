@@ -42,6 +42,7 @@ class _CalendarState extends State<CalendarView>{
   //カレンダーの予定
   List<int> _schedulesId = [];
   List<String> _schedulesTitle = [];
+  List<bool> _schedulesAllDay = [];
   List<DateTime> _schedulesStartDate = [];
   List<DateTime> _schedulesEndDate = [];
   List<Color> _schedulesColor = [];
@@ -105,6 +106,15 @@ class _CalendarState extends State<CalendarView>{
       //タイトル取得
       _schedulesTitle = list.map<String>((value){
         return value['title'];
+      }).toList();
+
+      //all dayか否か
+      _schedulesAllDay = list.map<bool>((value){
+        if(value['all_day']==0){
+          return false;
+        }else{
+          return true;
+        }
       }).toList();
 
       //開始日時取得
@@ -270,9 +280,11 @@ class _CalendarState extends State<CalendarView>{
             Container(
               height: size.height / 2,
               child:
-              Column(
-                children: _buildEvent()
-              ),
+                SingleChildScrollView(
+                child:Column(
+                  children: _buildEvent()
+                )
+                ),
             )
           ],
         ),
@@ -291,17 +303,23 @@ class _CalendarState extends State<CalendarView>{
         GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap:(){moveScheduleDetailPage(context, _schedulesId[i]);},
-        child:Padding(
+          child:Padding(
             padding: EdgeInsets.all(1.0),
           child:Container(
-            width: 400,
+            width: 500,
             child:Row(
               children: <Widget>[
                 Container(
                   padding: EdgeInsets.all(10.0),
-                  child:
-                    Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
-                      + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0')),
+                  child: Column(
+                      children: [
+                        if(_schedulesAllDay[i])
+                          Text(" 終日 "),
+                        if(!_schedulesAllDay[i])
+                          Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
+                              + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0')),
+                      ],
+                    )
                 ),
                 Container(
                   padding: EdgeInsets.all(10.0),
@@ -314,19 +332,14 @@ class _CalendarState extends State<CalendarView>{
                     ),
                   ),
                   child: Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(_schedulesTitle[i]),
-                        ],
-                      )
-                  ),
+                    padding: EdgeInsets.all(10.0),
+                    child:Text(_schedulesTitle[i], overflow: TextOverflow.ellipsis,maxLines: 1,),
+                  )
                 ),
-              ],
-            ),
+               ],
+              ),
+            )
           )
-        )
         );
 
         widgets.add(widget);
@@ -355,9 +368,6 @@ class _CalendarState extends State<CalendarView>{
   //月切り替わったときの処理
   void onPageChanged(pageId){
     print("pageId:" + pageId.toString());
-    for(int i=0; i < _dates.length; i++){
-      //print(i.toString() + ":" + _dates[i].toString());
-    }
 
     if(pageId == _dates.length -1){
       DateTime tempDate = getDateTime(_dates.length-1, 10);
@@ -451,12 +461,25 @@ class _CalendarState extends State<CalendarView>{
 
     Widget text = _changeText(date.weekday, date.day.toString(), flg);
 
-    return Column(children: <Widget>[
-      date==_currentDate ? Text(date.day.toString() , style: TextStyle(fontWeight: FontWeight.bold)):text,
-      Column(children: _buildSchedule(date),)
-    ],
-    );
-  }
+    return SingleChildScrollView(
+        child:Column(
+          children: <Widget>[
+            date==_currentDate ?
+              Container(
+                height: 23,
+                width: 23,
+                decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.blueAccent,
+                ),
+                child: Text(date.day.toString() , style: TextStyle(fontWeight: FontWeight.bold, color:Colors.white), textAlign: TextAlign.center,),
+              ):
+            text,
+            Column(children: _buildSchedule(date),)
+          ],
+        )
+      );
+    }
 
   //その日の予定
   List<Widget> _buildSchedule(DateTime date){
@@ -469,7 +492,7 @@ class _CalendarState extends State<CalendarView>{
             child:
             Container(
               width: 300,
-              child: Text(_schedulesTitle[i], style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center,),
+              child: Text(_schedulesTitle[i], style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,maxLines: 1),
               color: _schedulesColor[i]
             )
           );
