@@ -7,6 +7,7 @@ import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/first_boot_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
+import 'package:scheduleapp/setting_page.dart';
 import 'package:scheduleapp/timetable/timetable_view.dart';
 
 import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
@@ -144,6 +145,12 @@ class _MyHomePageState extends State<MyHomePage> {
       setState((){
         _currentTabIndex = index;
       });
+    }
+    if(index == 0){
+      Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SettingPage())
+      );
     }
     if(index == 2){
       if(_page == 1){
