@@ -80,6 +80,23 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
   }
 
   void saveData() async{
+    if(_contextController.text == ""){
+      showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text("内容が入力されていません"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("OK"),
+                onPressed: (){ Navigator.pop(context); },
+              )
+            ],
+          );
+        }
+      );
+      return;
+    }
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
@@ -91,7 +108,7 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
 
     var result = await Network().postData(data, "diary/store");
 
-    Navigator.pop(context);
+    Navigator.pop(context,true);
   }
 
   void _closeDialog(){

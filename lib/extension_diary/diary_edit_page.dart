@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:scheduleapp/extension_diary/diary_main_page.dart';
 import 'package:scheduleapp/network_utils/api.dart';
 
 class DiaryEditPage extends StatefulWidget {
   final diaryItem;
-  DiaryEditPage({ Key key,this.diaryItem }) : super(key : key);
+  Function(bool) callback;
+  DiaryEditPage({ Key key,this.diaryItem,this.callback }) : super(key : key);
 
   @override
   _DiaryEditPageState createState() => _DiaryEditPageState();
@@ -12,18 +14,20 @@ class DiaryEditPage extends StatefulWidget {
 
 class _DiaryEditPageState extends State<DiaryEditPage> {
 
-  DateTime date;
+  DateTime _date;
   final formatView = DateFormat("yyyy年MM月dd日");
   final formatPost = DateFormat("yyyyMMdd");
 
   var _contextController;
+  String _changeBeforeArticle;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _contextController = TextEditingController(text: widget.diaryItem["article"]);
-    date = DateTime.parse(widget.diaryItem["date"]);
+    _changeBeforeArticle = widget.diaryItem["article"];
+    _date = DateTime.parse(widget.diaryItem["date"]);
   }
 
   @override
@@ -37,6 +41,10 @@ class _DiaryEditPageState extends State<DiaryEditPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () => _closeDialog(),
+        ),
         centerTitle: true,
         title: Text("編集"),
         actions: <Widget>[
@@ -57,7 +65,7 @@ class _DiaryEditPageState extends State<DiaryEditPage> {
                   child: Container(
                       padding: const EdgeInsets.all(12.0),
                       child: Text(
-                        formatView.format(date),
+                        formatView.format(_date),
                         style: TextStyle(fontSize: 25.0),
                       )
                   ),
@@ -91,16 +99,63 @@ class _DiaryEditPageState extends State<DiaryEditPage> {
   }
 
   _updateDiaryItem() async{
+    if(_contextController.text == ""){
+      showDialog(
+          context: context,
+          builder: (context){
+            return AlertDialog(
+              title: Text("内容が入力されていません"),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("OK"),
+                  onPressed: (){ Navigator.pop(context); },
+                )
+              ],
+            );
+          }
+      );
+      return;
+    }
     final data = {
-      "date" : formatPost.format((date)),
+      "date" : formatPost.format((_date)),
       "article" : _contextController.text,
       "calendar_id" : widget.diaryItem["calendar_id"]
     };
 
-    print(data);
-
     var result = await Network().postData(data, "diary/update/${widget.diaryItem["id"]}");
 
+    widget.callback(true);
     Navigator.pop(context);
+  }
+
+  _closeDialog() {
+    if(_contextController.text != _changeBeforeArticle){
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("編集の破棄"),
+              content: Text("変更した内容が破棄されますが、よろしいですか？"),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("キャンセル"),
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                ),
+                FlatButton(
+                  child: Text("OK"),
+                  onPressed: (){
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                )
+              ],
+            );
+          }
+      );
+    }else{
+      Navigator.pop(context);
+    }
   }
 }
