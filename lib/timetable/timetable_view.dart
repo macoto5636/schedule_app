@@ -466,9 +466,9 @@ class _TimeTableViewState extends State<TimeTableView>{
               //color: scheduleList[num].color,
               child: Column(
                 children: [
-                  Text(scheduleList[num].title, style: TextStyle(color: Colors.white),),
+                  Text(scheduleList[num].title, style: TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis,),
                   Text(scheduleList[num].startDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].startDate.minute.toString().padLeft(2,'0') + "〜" +
-                      scheduleList[num].endDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].endDate.minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white),),
+                      scheduleList[num].endDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].endDate.minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis),
                 ],
               ),
             )
