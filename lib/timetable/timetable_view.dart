@@ -450,7 +450,7 @@ class _TimeTableViewState extends State<TimeTableView>{
     print("height:" + scheduleHeight.toString());
 
     return Positioned(
-        top: (scheduleList[num].startDate.hour * 60).toDouble(),
+        top: (scheduleList[num].startDate.hour * 60 + scheduleList[num].startDate.minute).toDouble(),
         left: (cnt2 * (width/cnt)).toDouble(),
         height: scheduleHeight.toDouble(),
         width: width/cnt,
@@ -466,9 +466,9 @@ class _TimeTableViewState extends State<TimeTableView>{
               //color: scheduleList[num].color,
               child: Column(
                 children: [
-                  Text(scheduleList[num].title, style: TextStyle(color: Colors.white),),
+                  Text(scheduleList[num].title, style: TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis,),
                   Text(scheduleList[num].startDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].startDate.minute.toString().padLeft(2,'0') + "〜" +
-                      scheduleList[num].endDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].endDate.minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white),),
+                      scheduleList[num].endDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].endDate.minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis),
                 ],
               ),
             )

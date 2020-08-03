@@ -275,10 +275,9 @@ class _CalendarState extends State<CalendarView>{
           children: <Widget>[
             Divider(
                 color: Colors.black,
-                height:  20,
             ),
             Container(
-              height: size.height / 2,
+              height: size.height ,
               child:
                 SingleChildScrollView(
                 child:Column(
@@ -321,22 +320,24 @@ class _CalendarState extends State<CalendarView>{
                       ],
                     )
                 ),
-                Container(
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(
-                        width: 5,
-                        color: _schedulesColor[i],
+                Expanded(
+                  child:Container(
+                    padding: EdgeInsets.all(10.0),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        left: BorderSide(
+                          width: 5,
+                          color: _schedulesColor[i],
+                        ),
                       ),
                     ),
+                    child: Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child:Text(_schedulesTitle[i], overflow: TextOverflow.ellipsis,maxLines: 1,),
+                    )
                   ),
-                  child: Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child:Text(_schedulesTitle[i], overflow: TextOverflow.ellipsis,maxLines: 1,),
-                  )
-                ),
-               ],
+                )
+              ],
               ),
             )
           )
@@ -391,19 +392,6 @@ class _CalendarState extends State<CalendarView>{
       pageController.jumpToPage(1);
     }
   }
-
-//  //header部分(< 2020年3月 >　の部分)
-//  // 前の月へ
-//  Widget _leftButton() => IconButton(
-//    onPressed: (){pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
-//    icon: const Icon(Icons.chevron_left),
-//  );
-//
-//  //次の月へ
-//  Widget _rightButton() => IconButton(
-//    onPressed: (){pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.linear);},
-//    icon: const Icon(Icons.chevron_right),
-//  );
 
   //body部分(カレンダー)
   //曜日

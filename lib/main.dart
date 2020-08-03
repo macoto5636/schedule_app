@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:scheduleapp/extention_drawer.dart';
-import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/first_boot_page.dart';
-import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/setting_page.dart';
@@ -103,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             if(_page==2) Expanded(
               child: TimeTableView(setCurrentDate),
-            )
+            ),
           ],
         )
       ),
