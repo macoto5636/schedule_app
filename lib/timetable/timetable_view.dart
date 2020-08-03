@@ -450,7 +450,7 @@ class _TimeTableViewState extends State<TimeTableView>{
     print("height:" + scheduleHeight.toString());
 
     return Positioned(
-        top: (scheduleList[num].startDate.hour * 60).toDouble(),
+        top: (scheduleList[num].startDate.hour * 60 + scheduleList[num].startDate.minute).toDouble(),
         left: (cnt2 * (width/cnt)).toDouble(),
         height: scheduleHeight.toDouble(),
         width: width/cnt,
