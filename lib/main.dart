@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:scheduleapp/calendar/calendar_change_page.dart';
 
 import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/first_boot_page.dart';
@@ -89,7 +90,10 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.view_carousel),
             iconSize: 35,
             tooltip: 'change calendar',
-            onPressed: (){},
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CalendarChangePage())
+              )
           )
         ],
       ),
