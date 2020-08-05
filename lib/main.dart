@@ -19,6 +19,8 @@ import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dart:async';
+
 void main() {
   //runApp(MyApp());
   runApp(MultiProvider(
@@ -69,6 +71,43 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int _page = 1;
 
+  //  内容の変更を検知するフラグ
+  var _rebuildFlag;
+
+  callback(bool status){
+    setState(() {
+      if(_rebuildFlag == true){
+        _rebuildFlag = false;
+      }else{
+        _rebuildFlag = true;
+      }
+
+      if(_page == 1){
+        _page = 2;
+      }else{
+        _page = 1;
+      }
+      _change();
+    });
+  }
+
+  void _change() async{
+    await Future.delayed(Duration(milliseconds: 100),);
+    setState((){
+      if(_page == 1){
+        _page = 2;
+      }else{
+      _page = 1;
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _rebuildFlag = false;
+  }
+
   void setCurrentDate(String date){
     setState(() {
       currentDate = date;
@@ -101,10 +140,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             if(_page==1) Expanded(
-              child: CalendarView(currentDate,setCurrentDate),
+              child: CalendarView(_rebuildFlag,setCurrentDate),
             ),
             if(_page==2) Expanded(
-              child: TimeTableView(setCurrentDate),
+              child: TimeTableView(_rebuildFlag,setCurrentDate),
             ),
           ],
         )
@@ -115,10 +154,17 @@ class _MyHomePageState extends State<MyHomePage> {
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
             child: Icon(Icons.add, size: 40.0,),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ScheduleAddPage())
-                )
+                onPressed: () async {
+                  await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return ScheduleAddPage();
+                        }
+                      )
+                  );
+                  callback(true);
+                  print("aaaaa");
+                }
             )
       ),
       bottomNavigationBar: BottomNavigationBar(

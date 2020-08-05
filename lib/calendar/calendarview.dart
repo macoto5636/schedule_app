@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import 'default_style.dart';
+import 'calendar_view_default_style.dart';
 
 import 'package:scheduleapp/schedule_detail.dart';
 
@@ -15,9 +16,10 @@ class DayOfWeek{
 }
 
 class CalendarView extends StatefulWidget{
-  String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
+  //String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
+  bool flag;
   Function(String) setCurrentDate;
-  CalendarView(this.currentDate, this.setCurrentDate);
+  CalendarView(this.flag, this.setCurrentDate);
 
   @override
   _CalendarState createState() => new _CalendarState();
@@ -82,7 +84,7 @@ class _CalendarState extends State<CalendarView>{
     _dates.add(_getTime(_currentDate.year, _currentDate.month));
     _dates.add(_getTime(nextMonth.year, nextMonth.month));
 
-
+    print("flag:" + widget.flag.toString());
   }
 
   ///
@@ -153,15 +155,15 @@ class _CalendarState extends State<CalendarView>{
   Widget _changeText(int id, String name, int flg){
     Widget text;
     if(id == 6){
-      text = Text(name , style: TextStyle(color: Colors.blue));
+      text = Text(name , style: defaultSaturdayTextStyle);
     }else if(id == 7){
-      text = Text(name , style: TextStyle(color: Colors.red));
+      text = Text(name , style: defaultSundayTextStyle);
     }else{
-      text = Text(name);
+      text = Text(name, style: defaultDaysTextStyle);
     }
 
     if(flg == 1){
-      text = Text(name, style: TextStyle(color: Colors.grey));
+      text = Text(name, style: defaultElseMonthDaysTextStyle,);
     }
 
     return text;
@@ -273,12 +275,13 @@ class _CalendarState extends State<CalendarView>{
     await showDialog(
     context: context,
     builder: (BuildContext context) => new AlertDialog(
-      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")"),
+      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")"
+          ,style: defaultDialogTitleTextStyle,),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
             Divider(
-                color: Colors.black,
+                color: defaultDividerColor,
             ),
             Container(
               height: size.height ,
@@ -317,10 +320,10 @@ class _CalendarState extends State<CalendarView>{
                   child: Column(
                       children: [
                         if(_schedulesAllDay[i])
-                          Text(" 終日 "),
+                          Text("\n 終日 \n", style: defaultDialogTextStyle,),
                         if(!_schedulesAllDay[i])
                           Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
-                              + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0')),
+                              + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0'), style: defaultDialogTextStyle,),
                       ],
                     )
                 ),
@@ -337,7 +340,7 @@ class _CalendarState extends State<CalendarView>{
                     ),
                     child: Padding(
                       padding: EdgeInsets.all(10.0),
-                      child:Text(_schedulesTitle[i], overflow: TextOverflow.ellipsis,maxLines: 1,),
+                      child:Text(_schedulesTitle[i], style:defaultDialogTextStyle, overflow: TextOverflow.ellipsis,maxLines: 1,),
                     )
                   ),
                 )
@@ -430,18 +433,37 @@ class _CalendarState extends State<CalendarView>{
   }
 
   //１日
-  Widget _buildTableCell(DateTime date, row){
-    final Size size = MediaQuery.of(context).size;
+  Widget _buildTableCell(DateTime date, row) {
+    final Size size = MediaQuery
+        .of(context)
+        .size;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap:(){onTapSelectDate(date);},
-      child: Container(
+    if (date == _selectDate) {
+      return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            onTapSelectDate(date);
+          },
+          child: Container(
+            height: (size.height - 170) / row,
+            child: _buildCell(date),
+            decoration: BoxDecoration(
+              border: Border.all(width: 2, color: defaultBorderColor),
+              color: date == _currentDate ? defaultTodayBackgroundColor : defaultBackgroundColor,
+            ),
+          )
+      );
+    }else{
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap:(){onTapSelectDate(date);},
+        child: Container(
           height: (size.height - 170) / row,
           child: _buildCell(date),
-          color: date==_selectDate ? Colors.lightBlueAccent: Colors.white,
-      ),
-    );
+          color: date==_currentDate ? defaultTodayBackgroundColor : defaultBackgroundColor,
+        ),
+      );
+    }
   }
 
   //日にち
@@ -458,13 +480,13 @@ class _CalendarState extends State<CalendarView>{
           children: <Widget>[
             date==_currentDate ?
               Container(
-                height: 23,
-                width: 23,
+                height: 16,
+                width: 16,
                 decoration: new BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.blueAccent,
+                  color: defaultBorderColor,
                 ),
-                child: Text(date.day.toString() , style: TextStyle(fontWeight: FontWeight.bold, color:Colors.white), textAlign: TextAlign.center,),
+                child: Text(date.day.toString() , style: defaultTodayTextStyle, textAlign: TextAlign.center,),
               ):
             text,
             Column(children: _buildSchedule(date),)
@@ -484,7 +506,7 @@ class _CalendarState extends State<CalendarView>{
             child:
             Container(
               width: 300,
-              child: Text(_schedulesTitle[i], style: TextStyle(color: Colors.white, fontSize: 12),textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,maxLines: 1),
+              child: Text(_schedulesTitle[i], style: defaultScheduleTextStyle, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,maxLines: 1),
               color: _schedulesColor[i]
             )
           );
@@ -565,18 +587,6 @@ class _CalendarState extends State<CalendarView>{
     return Container(
       child: Column(
         children: <Widget>[
-//          Container(
-//            child: Row(
-//              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//              children: <Widget>[
-//                _leftButton(),
-//                GestureDetector(
-//                  onTap: onTapCurrentMonth,
-//                  child: Text(headerText, style: defaultHeaderTextStyle)),
-//                _rightButton(),
-//              ],
-//            ),
-//          ),
           Container(
             child:Expanded(
               child:PageView(
