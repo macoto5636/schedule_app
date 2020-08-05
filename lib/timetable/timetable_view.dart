@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:scheduleapp/schedule_detail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class DayOfWeek{
@@ -98,7 +99,10 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   //現在の日付の予定取得
   void _getSchedules() async{
-    var url = "http://10.0.2.2:8000/api/calendar/" + "1";
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
+
+    var url = "http://10.0.2.2:8000/api/calendar/" + selectedCalendarId.toString();
     print(url);
     await http.get(url).then((response){
       print("Response status: ${response.statusCode}");
