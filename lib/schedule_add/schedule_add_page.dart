@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:scheduleapp/network_utils/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'schedule_add_repeat_page.dart';
 import 'schedule_add_notice_page.dart';
@@ -382,6 +385,9 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
 
   //入力された新しい予定をデータベースに登録する
   void saveData() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
+
     final data = {
       "title":_titleController.text,
       "all_day":_active,
@@ -399,7 +405,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
       "place":_placeController.text,
       "url":_urlController.text,
       "memo":_memoController.text,
-      "calendar_id":1,
+      "calendar_id":selectedCalendarId.toString(),
     };
     print(data);
     var result = await Network().postData(data, "schedules/store");
