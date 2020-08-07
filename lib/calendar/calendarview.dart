@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
 
 import 'package:scheduleapp/schedule_detail.dart';
@@ -112,11 +114,14 @@ class _CalendarState extends State<CalendarView>{
 
   //予定を取得する
   void getSchedules(int id) async{
-    var url = "http://10.0.2.2:8000/api/calendar/" + id.toString();
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
+
+    var url = "http://10.0.2.2:8000/api/calendar/" + selectedCalendarId.toString();
     print(url);
     await http.get(url).then((response){
       print("Response status: ${response.statusCode}");
-      //print("Response body: ${response.body}");
+//      print("Response body: ${response.body}");
       List list = json.decode(response.body);
 
       if(mounted) {
