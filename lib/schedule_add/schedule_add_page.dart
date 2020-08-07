@@ -4,127 +4,207 @@ import 'package:intl/intl.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:scheduleapp/network_utils/api.dart';
+import 'package:flutter_datetime_picker/src/date_format.dart';
 
 import 'schedule_add_repeat_page.dart';
 import 'schedule_add_notice_page.dart';
 import 'schedule_add_color_page.dart';
 
-enum Answers{
-  YES,
-  NO
-}
+class ScheduleEditPage extends  StatefulWidget{
+  Map data;
 
-class ScheduleAddPage extends  StatefulWidget{
-  @override
-  ScheduleAddPageState createState() => ScheduleAddPageState();
-}
-class ScheduleAddPageState extends State<ScheduleAddPage>{
-  var _titleController = TextEditingController(text: "");
-  var _placeController = TextEditingController(text: "place");
-  var _urlController = TextEditingController(text: "url");
-  var _memoController = TextEditingController(text: "memo");
+  ScheduleEditPage({this.data}){
+    if(data == null){
+      data = {
+        "id":null,
+        "title" : "title",
+        "all_day" : false,
+        "start_date" : DateTime.now(),
+        "end_date" : DateTime.now().add(new Duration(hours: 1)),
+        "repetition_flag" : false,
+        "repetition" : 0,
+        "notification_flag" : false,
+        "notification" : 0,
+        "color" : "0xFF40C4FF",
+        "memo" : "memo",
+        "place" : "place",
+        "url" : "url",
+        "calendar_id" : 1,
+      };
+    }else{
+      data["start_date"] = DateTime.parse(data["start_date"].toString());
+      data["end_date"] = DateTime.parse(data["end_date"].toString());
 
-  DateTime now = DateTime.now();
-  bool _active = false;
-  var iconSIze = 25.0;
-  DateTime i;
-  DateTime st = DateTime.now();
-  DateTime st1 = DateTime.now().add(new Duration(hours: 1));
-  String stText = DateFormat('yyyy/MM/dd HH:mm')
-      .format(DateTime.now())
-      .toString();
-  DateTime ed = DateTime.now().add(new Duration(hours: 1));
-  String edText = DateFormat('yyyy/MM/dd HH:mm')
-      .format(DateTime.now().add(new Duration(hours: 1)))
-      .toString();
-
-  //
-  void _onChanged(bool value) {
-    setState(() {
-      if (_active) {
-        _active = false;
-        stText = DateFormat('yyyy/MM/dd HH:mm').format(st).toString();
-        edText = DateFormat('yyyy/MM/dd HH:mm').format(ed).toString();
-      } else {
-        _active = true;
-        stText = DateFormat('yyyy/MM/dd').format(st).toString();
-        edText = DateFormat('yyyy/MM/dd').format(ed).toString();
+      if(data["all_day"] == 0){
+        data["all_day"] = false;
+      }else{
+        data["all_day"] = true;
       }
-    });
-  }
-  String _value = '';
-
-  void _setValue(String value) => setState(() => _value = value);
-
-  Future _showDialog() async {
-    var value = await showDialog(
-      context: context,
-      builder: (BuildContext context) => new AlertDialog(
-        content: new Text('入力した内容は削除されます。キャンセルしてもよろしいですか？'),
-        actions: <Widget>[
-          new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context, Answers.YES);},),
-          new SimpleDialogOption(child: new Text('キャンセル'),onPressed: (){Navigator.pop(context, Answers.NO);},),
-        ],
-      ),
-    );
-    switch(value) {
-      case Answers.YES:
-        _setValue('Yes');
-        _clear();
-        Navigator.of(context).pop();
-        break;
-      case Answers.NO:
-        _setValue('NO');
-        break;
+      if(data["repetition_flag"] == 0){
+        data["repetition_flag"] = false;
+      }else{
+        data["repetition_flag"] = true;
+      }
+      if(data["notification_flag"] == 0){
+        data["notification_flag"] = false;
+      }else{
+        data["notification_flag"] = true;
+      }
     }
   }
-  //providerで保持している新しい予定の値を初期化
-  void _clear(){
-    context.read<ColorChecker>().set(6);
-    context.read<RepeatChecker>().set(0);
-    context.read<NoticeChecker>().set(0);
+  @override
+  ScheduleEditPageState createState() => ScheduleEditPageState(data);
+}
+
+class ScheduleEditPageState extends State<ScheduleEditPage>{
+  final Map data;
+  Map scheduleData;
+
+  var _titleController;
+  var _placeController;
+  var _urlController;
+  var _memoController;
+
+  DateTime now = DateTime.now();
+  String sTimeText;
+  String eTimeText;
+
+  var iconSIze = 25.0;
+
+  ScheduleEditPageState(this.data);
+
+  @override
+  void initState(){
+    super.initState();
+    scheduleData = widget.data;
+
+    if (!scheduleData['all_day']) {
+      sTimeText = DateFormat('yyyy/MM/dd HH:mm').format(scheduleData['start_date']).toString();
+      eTimeText = DateFormat('yyyy/MM/dd HH:mm').format(scheduleData['end_date']).toString();
+    } else {
+      sTimeText = DateFormat('yyyy/MM/dd').format(scheduleData['start_date']).toString();
+      eTimeText = DateFormat('yyyy/MM/dd').format(scheduleData['end_date']).toString();
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      List colorList = context.read<ColorChecker>().listColor;
+      for(int i = 0; i < colorList.length; i++){
+        if(scheduleData["color"] == colorList[i].toString()){
+          context.read<ColorChecker>().set(i);
+          break;
+        }
+      }
+      context.read<RepeatChecker>().set(scheduleData["repetition"]);
+      context.read<NoticeChecker>().set(scheduleData["notification"]);
+    });
+
+    _titleController = TextEditingController(text: scheduleData["title"]);
+    _placeController = TextEditingController(text: scheduleData["place"]);
+    _urlController = TextEditingController(text: scheduleData["url"]);
+    _memoController = TextEditingController(text: scheduleData["memo"]);
   }
 
-  //新しい予定画面
+  //予定画面
   @override
   Widget build(BuildContext context) {
+//    print (scheduleData);
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: (){
-            _showDialog();
-            },
-        ),
-        title: Text("新しい予定"),
-        centerTitle: true,
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.check),
-            onPressed: (){
-              if(_titleController.text == ""){
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) => new AlertDialog(
-                    content: new Text('タイトルを入力してください'),
-                    actions: <Widget>[
-                      new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context);},),
-                    ],
-                  ),
-                );
-              }else{
-                saveData();
-                _clear();
-                Navigator.of(context).pop();
-              }
-            },
-          )
-        ],
-      ),
+      appBar: _appBar(),
       body: _ScheduleAddListView(),
     );
   }
+  //表示するAppBarを選択
+  //scrrenCheckが0なら予定追加画面用のAppBar
+  //scrrenCheckが1なら予定編集画面用のAppBar
+  Widget _appBar(){
+    Widget _appBar;
+    if(scheduleData["id"] == null){
+      _appBar = _scheduleAddAppBar();
+    }else{
+      _appBar = _scheduleChangeAppBar();
+    }
+    return _appBar;
+  }
+  //予定追加画面用のAppBar
+  Widget _scheduleAddAppBar(){
+    print(scheduleData["all_day"]);
+    return AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.close),
+        onPressed: (){
+          if(_inputChangeCheck()){              //予定のデータが初期値と違うとき、削除確認ダイアログを表示
+            _inputDeleteCheckDialog();
+          }else{                          //初期値のままならpop
+            Navigator.of(context).pop();
+          }
+        },
+      ),
+      title: Text("新しい予定"),
+      centerTitle: true,
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.check),
+          onPressed: (){
+            if(_titleController.text == ""){
+              showDialog(
+                context: context,
+                builder: (BuildContext context) => new AlertDialog(
+                  content: new Text('タイトルを入力してください'),
+                  actions: <Widget>[
+                    new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context);},),
+                  ],
+                ),
+              );
+            }else{
+              saveData();
+              Navigator.of(context).pop();
+            }
+          },
+        )
+      ],
+    );
+  }
 
+  //予定編集画面用のAppBar
+  Widget _scheduleChangeAppBar(){
+    return AppBar(
+      leading: IconButton(
+        icon: Icon(Icons.close),
+        onPressed: (){
+          if(_inputChangeCheck()){
+            _inputDeleteCheckDialog();
+          }else{
+            Navigator.of(context).pop();
+          }
+        },
+      ),
+      title: Text("予定の変更"),
+      centerTitle: true,
+      actions: <Widget>[
+        IconButton(
+          icon: Icon(Icons.check),
+          onPressed: (){
+            if(_titleController.text == ""){
+              showDialog(
+                context: context,
+                builder: (BuildContext context) => new AlertDialog(
+                  content: new Text('タイトルを入力してください'),
+                  actions: <Widget>[
+                    new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context);},),
+                  ],
+                ),
+              );
+            }else{
+              saveData();
+              Navigator.of(context).pop();
+            }
+          },
+        )
+      ],
+    );
+  }
+
+  //bodyに表示するListView
   Widget _ScheduleAddListView(){
     return ListView(
       children: <Widget>[
@@ -138,7 +218,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
         ),
         Divider(color: Colors.black,),
         SwitchListTile(
-          value: _active,
+          value: scheduleData['all_day'],
           activeColor: Colors.blue,
           activeTrackColor: Colors.lightBlueAccent,
           inactiveThumbColor: Colors.grey,
@@ -148,7 +228,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
             size: iconSIze,
           ),
           title: Text('終日'),
-          onChanged: _onChanged,
+          onChanged: _allDayChanged,
         ),
         ListTile(
           leading: Icon(
@@ -156,10 +236,8 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
             size: iconSIze,
           ),
           title: Text("開始"),
-          trailing: Text(stText),
-          onTap: () {
-            st = showDateTime(_active,st,true);
-          },
+          trailing: Text(sTimeText),
+          onTap: () {scheduleData["start_date"] = showDateTime(scheduleData["start_date"],true);},
         ),
         ListTile(
             leading: Icon(
@@ -167,10 +245,8 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
               size: iconSIze,
             ),
             title: Text("終了"),
-            trailing: Text(edText),
-            onTap: () {
-              ed = showDateTime(_active,ed,false);
-            }
+            trailing: Text(eTimeText),
+            onTap: () {scheduleData["end_date"] = showDateTime(scheduleData["end_date"],false);}
         ),
         ListTile(
           leading: Icon(
@@ -179,10 +255,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           ),
           title: Text("繰り返し"),
           trailing: RepeatText(),
-          onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SubRepeatPage())
-          ),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SubRepeatPage())),
         ), ListTile(
           leading: Icon(
             Icons.timer,
@@ -190,11 +263,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           ),
           title: Text("通知"),
           trailing: NoticeText(),
-          onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SubNoticePage())
-          ),
-//          onTap: () => Navigator.of(context).pushNamed("/notice"),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SubNoticePage())),
         ),Divider(color: Colors.black,
         ),ListTile(
           leading: Icon(
@@ -203,11 +272,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           ),
           title: Text("色"),
           trailing: ColorText(),
-          onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SubColorPage())
-          ),
-//          onTap: () => Navigator.of(context).pushNamed("/color"),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SubColorPage())),
         ), ListTile(
           leading: Icon(
             Icons.location_on,
@@ -252,9 +317,60 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
     );
   }
 
-  //開始、終了時刻のdatetimepickerを表示する関数
-  DateTime showDateTime(bool allDayActive, DateTime dateTime, bool stFlag) {
-    if(allDayActive){
+  //入力したデータの削除確認ダイアログ
+  Future _inputDeleteCheckDialog() async {
+    var value = await showDialog(
+      context: context,
+      builder: (BuildContext context) => new AlertDialog(
+        content: new Text('入力した内容は削除されます。キャンセルしてもよろしいですか？'),
+        actions: <Widget>[
+          new SimpleDialogOption(child: new Text('OK'),onPressed: (){Navigator.pop(context);Navigator.pop(context);},),
+          new SimpleDialogOption(child: new Text('キャンセル'),onPressed: (){Navigator.pop(context);},),
+        ],
+      ),
+    );
+  }
+
+  //初期値か編集済みかをチェック
+  bool _inputChangeCheck(){
+    bool value;
+//    if(_titleController.text != "" || scheduleData['all_day'] == true || context.read<RepeatChecker>().flg ||
+//        context.read<NoticeChecker>().flg || context.read<ColorChecker>().checked != 6 ||
+//        _placeController.text != "" || _urlController.text != "" || _memoController.text != ""){
+//      value = true;
+//    }else{
+//      value = false;
+//    }
+    //予定情報をMap:scheduleDataにセットする
+    set();
+    print(data);
+    print(scheduleData);
+    if(data != scheduleData){
+      value = true;
+    }else{
+      value = false;
+    }
+    return value;
+  }
+
+  //終日の radioButton が切り替わるときの処理
+  void _allDayChanged(bool value) {
+    //終日フラグを逆値にし、開始・終了の表示を変更する
+    setState(() {
+      scheduleData['all_day'] = value;
+      if (!scheduleData['all_day']) {
+        sTimeText = DateFormat('yyyy/MM/dd HH:mm').format(scheduleData['start_date']).toString();
+        eTimeText = DateFormat('yyyy/MM/dd HH:mm').format(scheduleData['end_date']).toString();
+      } else {
+        sTimeText = DateFormat('yyyy/MM/dd').format(scheduleData['start_date']).toString();
+        eTimeText = DateFormat('yyyy/MM/dd').format(scheduleData['end_date']).toString();
+      }
+    });
+  }
+
+  //開始・終了時刻のdatetimepicker
+  DateTime showDateTime(DateTime dateTime, bool stFlag) {
+    if(scheduleData["all_day"]){
       DatePicker.showDatePicker(context,
           showTitleActions: true,
           minTime: DateTime(dateTime.year - 3, dateTime.month, dateTime.day),
@@ -273,21 +389,19 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           ),
           onChanged: (date) {},
           onConfirm: (date) {
-            print(st);
-            print(date);
             if(stFlag){
-              st = date;
+              scheduleData['start_date'] = date;
               setState(() {
-                stText = DateFormat('yyyy/MM/dd').format(st).toString();
-                if (date.compareTo(ed) > 0) {
-                  ed = st.add(new Duration(hours: 1));
-                  edText = DateFormat('yyyy/MM/dd')
-                      .format(ed)
+                sTimeText = DateFormat('yyyy/MM/dd').format(scheduleData['start_date']).toString();
+                if (date.compareTo(scheduleData['end_date']) > 0) {
+                  scheduleData['end_date'] = scheduleData['start_date'].add(new Duration(hours: 1));
+                  eTimeText = DateFormat('yyyy/MM/dd')
+                      .format(scheduleData['end_date'])
                       .toString();
                 }
               });
             } else {
-              if (st.compareTo(date) > 0) {
+              if (scheduleData['start_date'].compareTo(date) > 0) {
                 showDialog(
                     context: context,
                     builder: (_) {
@@ -304,9 +418,9 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
                 );
               } else {
                 setState(() {
-                  ed = date;
-                  edText = DateFormat('yyyy/MM/dd')
-                      .format(ed)
+                  scheduleData['end_date'] = date;
+                  eTimeText = DateFormat('yyyy/MM/dd')
+                      .format(scheduleData['end_date'])
                       .toString();
                 });
               }
@@ -336,19 +450,19 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
           onConfirm: (date) {
             if(stFlag){
               setState(() {
-                st = date;
-                stText = DateFormat('yyyy/MM/dd HH:mm')
-                    .format(st)
+                scheduleData['start_date'] = date;
+                sTimeText = DateFormat('yyyy/MM/dd HH:mm')
+                    .format(scheduleData['start_date'])
                     .toString();
-                if (date.compareTo(ed) > 0) {
-                  ed = st.add(new Duration(hours: 1));
-                  edText = DateFormat('yyyy/MM/dd HH:mm')
-                      .format(ed)
+                if (date.compareTo(scheduleData['end_date']) > 0) {
+                  scheduleData['end_date'] = scheduleData['start_date'].add(new Duration(hours: 1));
+                  eTimeText = DateFormat('yyyy/MM/dd HH:mm')
+                      .format(scheduleData['end_date'])
                       .toString();
                 }
               });
             }else{
-              if (st.compareTo(date) > 0) {
+              if (scheduleData['start_date'].compareTo(date) > 0) {
                 showDialog(
                     context: context,
                     builder: (_) {
@@ -365,9 +479,9 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
                 );
               } else {
                 setState(() {
-                  ed = date;
-                  edText = DateFormat('yyyy/MM/dd HH:mm')
-                      .format(ed)
+                  scheduleData['end_date'] = date;
+                  eTimeText = DateFormat('yyyy/MM/dd HH:mm')
+                      .format(scheduleData['end_date'])
                       .toString();
                 });
               }
@@ -380,28 +494,181 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
     return dateTime;
   }
 
-  //入力された新しい予定をデータベースに登録する
+  //入力された予定をデータベースに登録,更新する
   void saveData() async{
-    final data = {
-      "title":_titleController.text,
-      "all_day":_active,
-      "start_date":DateFormat('yyyy-MM-dd HH:mm')
-          .format(st)
-          .toString(),
-      "end_date":DateFormat('yyyy-MM-dd HH:mm')
-          .format(ed)
-          .toString(),
-      "repetition_flag":context.read<RepeatChecker>().flg,
-      "repetition":context.read<RepeatChecker>().checked,
-      "notification_flag":context.read<NoticeChecker>().flg,
-      "notification":context.read<NoticeChecker>().checked,
-      "color":context.read<ColorChecker>().listColor[context.read<ColorChecker>().checked].toString(),
-      "place":_placeController.text,
-      "url":_urlController.text,
-      "memo":_memoController.text,
-      "calendar_id":1,
-    };
-    print(data);
-    var result = await Network().postData(data, "schedules/store");
+    //開始・終了時刻をデータベースと合わせるためにフォーマットする
+    scheduleData["start_date"] = DateFormat('yy-MM-dd HH:mm').format(scheduleData["start_date"]);
+    scheduleData["end_date"] = DateFormat('yy-MM-dd HH:mm').format(scheduleData["end_date"]);
+    //予定情報をMapにセットする
+    set();
+
+    print(scheduleData);
+
+    //引数がnullなら新しい予定を登録し
+    //nullでないなら更新処理を行う
+    if(scheduleData["id"] == null){
+      var result = await Network().postData(scheduleData, "schedules/store");
+    } else {
+      var result = await Network().postData(
+          scheduleData, "schedules/update/" + scheduleData["id"].toString());
+    }
+  }
+  void set(){
+    //プロバイダーで保持している予定情報を代入する
+    scheduleData["repetition_flag"] = context.read<RepeatChecker>().flg;
+    scheduleData["repetition"] = context.read<RepeatChecker>().checked;
+    scheduleData["notification_flag"] = context.read<NoticeChecker>().flg;
+    scheduleData["notification"] = context.read<NoticeChecker>().checked;
+    scheduleData["color"] = context.read<ColorChecker>().listColor[context.read<ColorChecker>().checked].toString();
+
+    //TextFieldの値を代入する
+    scheduleData["title"] = _titleController.text;
+    scheduleData["memo"] = _memoController.text;
+    scheduleData["place"] = _placeController.text;
+    scheduleData["url"] = _urlController.text;
   }
 }
+
+//class CustomPickerModel extends CommonPickerModel {
+//  DateTime maxTime = null;
+//  DateTime minTime = null;
+//  int _currentLeftIndex;
+//  int _currentMiddleIndex;
+//  int _currentRightIndex;
+//  String digits(int value, int length) {
+//    return '$value'.padLeft(length, "0");
+//  }
+//
+//  String dateDigits(){
+//    return '';
+//  }
+//
+//  CustomPickerModel({DateTime currentTime, LocaleType locale}) : super(locale: locale) {
+//    if (currentTime != null) {
+//      this.currentTime = currentTime;
+//      if (maxTime != null &&
+//          (currentTime.isBefore(maxTime) || currentTime.isAtSameMomentAs(maxTime))) {
+//        this.maxTime = maxTime;
+//      }
+//      if (minTime != null &&
+//          (currentTime.isAfter(minTime) || currentTime.isAtSameMomentAs(minTime))) {
+//        this.minTime = minTime;
+//      }
+//    } else {
+//      this.maxTime = maxTime;
+//      this.minTime = minTime;
+//      var now = DateTime.now();
+//      if (this.minTime != null && this.minTime.isAfter(now)) {
+//        this.currentTime = this.minTime;
+//      } else if (this.maxTime != null && this.maxTime.isBefore(now)) {
+//        this.currentTime = this.maxTime;
+//      } else {
+//        this.currentTime = now;
+//      }
+//    }
+//
+//    if (this.minTime != null && this.maxTime != null && this.maxTime.isBefore(this.minTime)) {
+//      // invalid
+//      this.minTime = null;
+//      this.maxTime = null;
+//    }
+//
+////    this.setLeftIndex(0);
+////    this.setMiddleIndex(this.currentTime.hour);
+////    this.setRightIndex(this.currentTime.minute);
+//    _currentLeftIndex = 0;
+//    _currentMiddleIndex = this.currentTime.hour;
+//    _currentRightIndex = this.currentTime.minute;
+//    if (this.minTime != null && isAtSameDay(this.minTime, this.currentTime)) {
+//      _currentMiddleIndex = this.currentTime.hour - this.minTime.hour;
+//      if (_currentMiddleIndex == 0) {
+//        _currentRightIndex = this.currentTime.minute - this.minTime.minute;
+//      }
+//    }
+//    this.currentTime = currentTime ?? DateTime.now();
+//
+//  }
+//
+//  bool isAtSameDay(DateTime day1, DateTime day2) {
+//    return day1 != null &&
+//        day2 != null &&
+//        day1.difference(day2).inDays == 0 &&
+//        day1.day == day2.day;
+//  }
+//
+//  @override
+//  String leftStringAtIndex(int index) {
+//    DateTime time = currentTime.add(Duration(days: index));
+//    if (minTime != null && time.isBefore(minTime) && !isAtSameDay(minTime, time)) {
+//      return null;
+//    } else if (maxTime != null && time.isAfter(maxTime) && !isAtSameDay(maxTime, time)) {
+//      return null;
+//    }
+//    return formatDate(time, [ymdw], locale);
+//  }
+//
+//  @override
+//  String middleStringAtIndex(int index) {
+//    DateTime time = currentTime.add(Duration(days: _currentLeftIndex));
+//    if (isAtSameDay(minTime, time)) {
+//      if (index >= 0 && index < 24 - minTime.hour) {
+//        return digits(minTime.hour + index, 2);
+//      } else {
+//        return null;
+//      }
+//    } else if (isAtSameDay(maxTime, time)) {
+//      if (index >= 0 && index <= maxTime.hour) {
+//        return digits(index, 2);
+//      } else {
+//        return null;
+//      }
+//    }
+//    return digits(index % 24, 2);
+//  }
+//
+//  @override
+//  String rightStringAtIndex(int index) {
+//    DateTime time = currentTime.add(Duration(days: _currentLeftIndex));
+//    if (isAtSameDay(minTime, time) && _currentMiddleIndex == 0) {
+//      if (index >= 0 && index < 60 - minTime.minute) {
+//        return digits(minTime.minute + index, 2);
+//      } else {
+//        return null;
+//      }
+//    } else if (isAtSameDay(maxTime, time) && _currentMiddleIndex >= maxTime.hour) {
+//      if (index >= 0 && index <= maxTime.minute) {
+//        return digits(index, 2);
+//      } else {
+//        return null;
+//      }
+//    }
+//    return digits(index % 12 * 5, 2);
+//  }
+//
+//  @override
+//  DateTime finalTime() {
+//    DateTime time = currentTime.add(Duration(days: _currentLeftIndex));
+//    var hour = _currentMiddleIndex;
+//    var minute = _currentRightIndex;
+//    if (isAtSameDay(minTime, time)) {
+//      hour += minTime.hour;
+//      if (minTime.hour == hour) {
+//        minute += minTime.minute;
+//      }
+//    }
+//
+//    return currentTime.isUtc
+//        ? DateTime.utc(time.year, time.month, time.day, hour, minute)
+//        : DateTime(time.year, time.month, time.day, hour, minute);
+//  }
+//
+//  @override
+//  List<int> layoutProportions() {
+//    return [4, 1, 1];
+//  }
+//
+//  @override
+//  String rightDivider() {
+//    return ':';
+//  }
+//}

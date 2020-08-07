@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 
 class DayOfWeek{
@@ -58,6 +59,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     DayOfWeek(7, "日"),
   ];
 
+  int _id = 0;                  //予定のID
   String _title = "";           //予定のタイトル
   int _allDayFlag = 0;         //オールデイか否かのフラグ
   DateTime _startDate = DateTime.now();     //開始日時
@@ -69,6 +71,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   String _memo = "";            //予定のメモ
   String _place = "";           //予定の場所
   String _urlSchedule = "";             //予定のURL
+
+  Map data;
 
   var iconSIze = 25.0;
   
@@ -91,6 +95,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       Map<String, dynamic> scheduleDetail = json.decode(response.body);
 
       setState(() {
+        _id = scheduleDetail['id'];
         _title = scheduleDetail['title'];
         _allDayFlag = scheduleDetail['all_day'];
         _startDate = DateTime.parse(scheduleDetail['start_date']);
@@ -102,6 +107,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         _memo = scheduleDetail['memo'];
         _place = scheduleDetail['place'];
         _urlSchedule = scheduleDetail['url'];
+
+        data = scheduleDetail;
       });
     });
    }
@@ -238,9 +245,41 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
               _buildListView(),
               Container(
                 width: double.infinity,
-                child: Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Text("編集", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
+                child: GestureDetector(
+                  onTap: () {
+                    print("debug click");
+                    bool _allDayFlagBool;
+                    bool _repetitionFlagBool;
+                    bool _notificationFlagBool;
+                    if(_allDayFlag == 0){
+                      _allDayFlagBool = false;
+                    }else{
+                      _allDayFlagBool = true;
+                    }
+                    if(_allDayFlag == 0){
+                      _repetitionFlagBool = false;
+                    }else{
+                      _repetitionFlagBool = true;
+                    }
+                    if(_allDayFlag == 0){
+                      _notificationFlagBool = false;
+                    }else{
+                      _notificationFlagBool = true;
+                    }
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScheduleEditPage(data: data)
+//                          builder: (context) => ScheduleEditPage(
+//                              1,_id,_title,_allDayFlagBool,_startDate,_endDate, _repetitionFlagBool,
+//                              _repetition, _notificationFlagBool, _notification, , _memo,_place,_urlSchedule),
+                        )
+                    );
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text("編集", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
+                  ),
                 ),
               )
             ],
