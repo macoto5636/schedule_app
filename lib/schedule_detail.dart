@@ -63,7 +63,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   DateTime _startDate = DateTime.now();     //開始日時
   DateTime _endDate = DateTime.now();       //終了日時
   int _notificationFlag = 0;   //通知のフラグ
-  int _notification = 0;       //通知
+  String _notification = "";       //通知
   int _repetitionFlag = 0;     //繰り返しのフラグ
   int _repetition = 0;         //繰り返し
   String _memo = "";            //予定のメモ
@@ -142,17 +142,17 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   List<Widget> _buildListColumn(){
     List<Widget> list = [];
 
-    if(_place != ""){
+    if(_place != null){
       list.add(
         _buildListItem(Icons.location_on, _place)
       );
     }
-    if(_urlSchedule != ""){
+    if(_urlSchedule != null){
       list.add(
         _buildListItem(Icons.link, _urlSchedule)
       );
     }
-    if(_memo != ""){
+    if(_memo != null){
       list.add(
         _buildListItem(Icons.subject, _memo)
       );
@@ -176,7 +176,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       );
     }else{
       list.add(
-          _buildListItem(Icons.timer, _notification.toString())
+          _buildListItem(Icons.timer, _notification)
       );
     }
 

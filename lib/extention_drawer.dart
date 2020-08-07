@@ -204,41 +204,41 @@ class _ExtensionListViewState extends State<ExtensionListView> {
 
 //拡張機能なし画面
 Widget noExtensionView(BuildContext context){
-        return Padding(
-          padding: const EdgeInsets.only(top: 100,bottom: 100),
-          child: Container(
-            child:Center(
-              child: Column(
-                children: <Widget>[
-                  Text('拡張機能が追加されていません'),
-                  FlatButton(
-                    color: Theme.of(context).primaryColor,
-                    textColor: Colors.white,
-                    padding: EdgeInsets.all(8.0),
-                    onPressed: () {
-                      moveExtentionAddPage(context);
-                    },
-                    child: Text(
-                      "拡張機能を追加する",
-                      style: TextStyle(fontSize: 15.0),
-                    ),
-                  )
-                ],
+  return Padding(
+    padding: const EdgeInsets.only(top: 100,bottom: 100),
+    child: Container(
+      child:Center(
+        child: Column(
+          children: <Widget>[
+            Text('拡張機能が追加されていません'),
+            FlatButton(
+              color: Theme.of(context).primaryColor,
+              textColor: Colors.white,
+              padding: EdgeInsets.all(8.0),
+              onPressed: () {
+                moveExtentionAddPage(context);
+                },
+              child: Text(
+                "拡張機能を追加する",
+                style: TextStyle(fontSize: 15.0),
               ),
-            ),
-          ),
-        );
+            )
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 //拡張機能追加ページへ移動
 moveExtentionAddPage(BuildContext context){
   Navigator.of(context).pop();
   Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) {
-          return ExtensionAddPage();
-        },
-      ),
+    MaterialPageRoute(
+      builder: (context) {
+        return ExtensionAddPage();
+      },
+    ),
   );
 }
 
