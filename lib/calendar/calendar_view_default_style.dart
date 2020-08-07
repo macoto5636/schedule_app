@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+//拡張機能
+const Color diaryColor = Colors.amber;
 
 //カレンダー部分
 const TextStyle defaultDaysTextStyle = const TextStyle(
