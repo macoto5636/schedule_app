@@ -71,17 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int _page = 1;
 
-  //  内容の変更を検知するフラグ
-  var _rebuildFlag;
 
   callback(bool status){
     setState(() {
-      if(_rebuildFlag == true){
-        _rebuildFlag = false;
-      }else{
-        _rebuildFlag = true;
-      }
-
       if(_page == 1){
         _page = 2;
       }else{
@@ -103,10 +95,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _rebuildFlag = false;
-  }
 
   void setCurrentDate(String date){
     setState(() {
@@ -140,10 +128,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             if(_page==1) Expanded(
-              child: CalendarView(_rebuildFlag,setCurrentDate),
+              child: CalendarView(setCurrentDate),
             ),
             if(_page==2) Expanded(
-              child: TimeTableView(_rebuildFlag,setCurrentDate),
+              child: TimeTableView(setCurrentDate),
             ),
           ],
         )

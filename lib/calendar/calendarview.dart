@@ -38,9 +38,8 @@ class Schedules{
 
 class CalendarView extends StatefulWidget{
   //String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
-  bool flag;
   Function(String) setCurrentDate;
-  CalendarView(this.flag, this.setCurrentDate);
+  CalendarView(this.setCurrentDate);
 
   @override
   _CalendarState createState() => new _CalendarState();
@@ -84,7 +83,7 @@ class _CalendarState extends State<CalendarView>{
   initState(){
     super.initState();
 
-    getSchedules(1);
+    getSchedules();
 
     _currentDate = DateTime.now();
     _selectDate = _currentDate;
@@ -103,7 +102,6 @@ class _CalendarState extends State<CalendarView>{
     _dates.add(_getTime(_currentDate.year, _currentDate.month));
     _dates.add(_getTime(nextMonth.year, nextMonth.month));
 
-    print("flag:" + widget.flag.toString());
   }
 
   callback(bool status){
@@ -113,7 +111,7 @@ class _CalendarState extends State<CalendarView>{
   }
 
   //予定を取得する
-  void getSchedules(int id) async{
+  void getSchedules() async{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
 
@@ -175,6 +173,7 @@ class _CalendarState extends State<CalendarView>{
         });
       }
     });
+    print("schedule end");
   }
 
   //拡張機能持っているか否か
@@ -360,13 +359,35 @@ class _CalendarState extends State<CalendarView>{
     await showDialog(
     context: context,
     builder: (BuildContext context) => new AlertDialog(
-      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")"
-          ,style: defaultDialogTitleTextStyle,),
+      title: RichText(
+              text: TextSpan(
+                children: [
+                  WidgetSpan(
+                    child:Container(
+                      margin: EdgeInsets.only(bottom: 5.0),
+                      child: Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")",
+                        style: defaultDialogTitleTextStyle,),
+                    )
+                  ),
+                  WidgetSpan(
+                    child: GestureDetector(
+                      onTap: (){
+                        print("on tapped add icon!!!");
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(left: 67.0),
+                        child: Icon(Icons.add, size: 40, color: Colors.grey,),
+                      ),
+                    )
+                  )
+                ]
+              ),
+            ),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
             Divider(
-                color: defaultDividerColor,
+              color: defaultDividerColor,
             ),
             Container(
               //height: size.height ,
@@ -472,11 +493,12 @@ class _CalendarState extends State<CalendarView>{
     }
 
     //ダイアログの高さ調整
-    if(widgets.length < 7){
-      for(int i=0; i< 7 - widgets.length; i++){
+    if(widgets.length < 8){
+      for(int i=0; i< 8 - widgets.length; i++){
         widgets.add(
           Container(
             height: 120,
+            width: 300,
           )
         );
       }
@@ -645,8 +667,35 @@ class _CalendarState extends State<CalendarView>{
             child:
             Container(
               width: 300,
-              child: Text(_schedules[i].title, style: defaultScheduleTextStyle, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,maxLines: 1),
-              color: _schedules[i].color
+              color: _schedules[i].color,
+              child: RichText(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: defaultScheduleTextStyle,
+                  children: [
+                    if(_schedules[i].typeId == 0)
+                      TextSpan(
+                        text: _schedules[i].title,
+                      ),
+                    if(_schedules[i].typeId == 1)
+                      TextSpan(
+                        children: [
+                          WidgetSpan(
+                            child: Padding(
+                              padding: EdgeInsets.only(right: 5.0),
+                              child: Icon(Icons.import_contacts, size: 11.0, color: Colors.white,),
+                            )
+                          ),
+                          TextSpan(
+                            text: "日記",
+                          )
+                        ]
+                      )
+                  ]
+                ),
+              ),
             )
           );
         widgets.add(widget);

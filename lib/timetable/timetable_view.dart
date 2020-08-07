@@ -38,9 +38,8 @@ class Schedules{
 }
 
 class TimeTableView extends StatefulWidget {
-  bool flag;
   Function(String) setCurrentDate;
-  TimeTableView(this.flag, this.setCurrentDate);
+  TimeTableView(this.setCurrentDate);
 
   @override
   _TimeTableViewState createState() => _TimeTableViewState();
