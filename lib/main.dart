@@ -8,7 +8,7 @@ import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/first_boot_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
-import 'package:scheduleapp/setting_page.dart';
+import 'package:scheduleapp/settings/setting_page.dart';
 import 'package:scheduleapp/timetable/timetable_view.dart';
 
 import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
@@ -65,7 +65,7 @@ class MyHomePage extends StatefulWidget {
 _MyHomePageState myHomePageState = _MyHomePageState();
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _currentTabIndex = 1; //BottomNavigationBarItem現在選択しているやつ
+  int _currentTabIndex = 2; //BottomNavigationBarItem現在選択しているやつ
 
   String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";  //現在表示されてるカレンダーの年月
 
@@ -111,6 +111,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ExtensionDrawer()
       ),
       appBar: AppBar(
+        centerTitle: true,
         title: Text(currentDate),
         actions: <Widget>[
           IconButton(
@@ -127,10 +128,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Container(
         child: Column(
           children: [
-            if(_page==1) Expanded(
+            if(_currentTabIndex == 0)Expanded(
+              child: SettingPage(),
+            ),
+            if(_currentTabIndex == 2 && _page==1) Expanded(
               child: CalendarView(setCurrentDate),
             ),
-            if(_page==2) Expanded(
+            if(_currentTabIndex == 2 && _page==2) Expanded(
               child: TimeTableView(setCurrentDate),
             ),
           ],
@@ -185,10 +189,13 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
     if(index == 0){
-      Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SettingPage())
-      );
+      setState(() {
+        setCurrentDate("設定");
+      });
+//      Navigator.push(
+//          context,
+//          MaterialPageRoute(builder: (context) => SettingPage())
+//      );
     }
     if(index == 2){
       if(_page == 1){
