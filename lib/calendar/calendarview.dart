@@ -87,21 +87,7 @@ class _CalendarState extends State<CalendarView>{
     getSchedules();
     _futures = initExecution();
 
-//    _currentDate = DateTime.now();
-//    _selectDate = _currentDate;
-//    _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
-//    _currentMonth = _currentDate.month;
-//
-//    headerText = _currentDate.year.toString() + "年" + _currentDate.month.toString() + "月";
-//
-//    DateTime previousMonth = DateTime(_currentDate.year, _currentDate.month, 0);
-//    DateTime nextMonth = DateTime(_currentDate.year, _currentDate.month+2, 0);
-//
-//    _dates.add(_getTime(previousMonth.year,previousMonth.month));
-//    _dates.add(_getTime(_currentDate.year, _currentDate.month));
-//    _dates.add(_getTime(nextMonth.year, nextMonth.month));
   }
-
 
   callback(bool status){
     setState(() {
@@ -179,6 +165,7 @@ class _CalendarState extends State<CalendarView>{
   void getPlugin() async{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
 
     http.Response response = await Network().getData("extension/addlist/$calendarId");
     List list = json.decode(response.body);
@@ -823,7 +810,6 @@ class _CalendarState extends State<CalendarView>{
                 }
               },
             )
-
           ],
         )
     );
