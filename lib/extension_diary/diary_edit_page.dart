@@ -1,39 +1,58 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-
 import 'package:intl/intl.dart';
+import 'package:scheduleapp/extension_diary/diary_main_page.dart';
 import 'package:scheduleapp/network_utils/api.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-class DiaryAddPage extends StatefulWidget {
+class DiaryEditPage extends StatefulWidget {
+  final diaryItem;
+  Function(bool) callback;
+  DiaryEditPage({ Key key,this.diaryItem,this.callback }) : super(key : key);
+
   @override
-  _DiaryAddPageState createState() => _DiaryAddPageState();
+  _DiaryEditPageState createState() => _DiaryEditPageState();
 }
 
-class _DiaryAddPageState extends State<DiaryAddPage> {
-  DateTime date = DateTime.now();
+class _DiaryEditPageState extends State<DiaryEditPage> {
+
+  DateTime _date;
   final formatView = DateFormat("yyyy年MM月dd日");
   final formatPost = DateFormat("yyyyMMdd");
 
-  var _contextController = TextEditingController();
+  var _contextController;
+  String _changeBeforeArticle;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _contextController = TextEditingController(text: widget.diaryItem["article"]);
+    _changeBeforeArticle = widget.diaryItem["article"];
+    _date = DateTime.parse(widget.diaryItem["date"]);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _contextController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-//      resizeToAvoidBottomPadding: false,
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.close),
           onPressed: () => _closeDialog(),
         ),
         centerTitle: true,
-        title: Text("日記を書く"),
+        title: Text("編集"),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.check),
-            onPressed: (){  saveData(); },
+            onPressed: (){
+              _updateDiaryItem();
+            },
           )
         ],
       ),
@@ -44,10 +63,10 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
               children: <Widget>[
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(12.0),
                       child: Text(
-                          formatView.format(date),
-                          style: TextStyle(fontSize: 25.0),
+                        formatView.format(_date),
+                        style: TextStyle(fontSize: 25.0),
                       )
                   ),
                 ),
@@ -55,7 +74,7 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
             ),
             Container(
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey))
+                  border: Border(bottom: BorderSide(color: Colors.grey))
               ),
             ),
             Container(
@@ -67,8 +86,8 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
                 maxLines: null,
                 style: TextStyle(fontSize: 25),
                 decoration: InputDecoration(
-                  hintText: "内容",
-                  focusedBorder: InputBorder.none
+                    hintText: "内容",
+                    focusedBorder: InputBorder.none
                 ),
 //              maxLines: 50,
               ),
@@ -79,45 +98,44 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
     );
   }
 
-  void saveData() async{
+  _updateDiaryItem() async{
     if(_contextController.text == ""){
       showDialog(
-        context: context,
-        builder: (context){
-          return AlertDialog(
-            title: Text("内容が入力されていません"),
-            actions: <Widget>[
-              FlatButton(
-                child: Text("OK"),
-                onPressed: (){ Navigator.pop(context); },
-              )
-            ],
-          );
-        }
+          context: context,
+          builder: (context){
+            return AlertDialog(
+              title: Text("内容が入力されていません"),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("OK"),
+                  onPressed: (){ Navigator.pop(context); },
+                )
+              ],
+            );
+          }
       );
       return;
     }
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
-
     final data = {
-      "date" : formatPost.format((date)),
+      "date" : formatPost.format((_date)),
       "article" : _contextController.text,
-      "calendar_id" : calendarId
+      "calendar_id" : widget.diaryItem["calendar_id"]
     };
 
-    var result = await Network().postData(data, "diary/store");
+    var result = await Network().postData(data, "diary/update/${widget.diaryItem["id"]}");
 
-    Navigator.pop(context,true);
+    widget.callback(true);
+    Navigator.pop(context);
   }
 
-  void _closeDialog(){
-    if(_contextController.text != ""){
+  _closeDialog() {
+    if(_contextController.text != _changeBeforeArticle){
       showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
-              content: Text("入力した内容が破棄されますが、よろしいですか？"),
+              title: Text("編集の破棄"),
+              content: Text("変更した内容が破棄されますが、よろしいですか？"),
               actions: <Widget>[
                 FlatButton(
                   child: Text("キャンセル"),

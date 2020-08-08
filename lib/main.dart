@@ -33,7 +33,7 @@ void main() {
   );
 
 }
-int i;
+
 class MyApp extends StatelessWidget {
 
   @override
@@ -78,7 +78,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-//    i++;
 
     return Scaffold(
       drawer: Drawer(
@@ -116,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Icon(Icons.add, size: 40.0,),
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ScheduleEditPage(data: null))
+                  MaterialPageRoute(builder: (context) => ScheduleEditPage(data: null,))
                 )
             )
       ),

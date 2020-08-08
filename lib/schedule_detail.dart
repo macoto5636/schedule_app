@@ -65,7 +65,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   DateTime _startDate = DateTime.now();     //開始日時
   DateTime _endDate = DateTime.now();       //終了日時
   int _notificationFlag = 0;   //通知のフラグ
-  int _notification = 0;       //通知
+  String _notification = "";       //通知
   int _repetitionFlag = 0;     //繰り返しのフラグ
   int _repetition = 0;         //繰り返し
   String _memo = "";            //予定のメモ
@@ -94,22 +94,25 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       //print("Response body: ${response.body}");
       Map<String, dynamic> scheduleDetail = json.decode(response.body);
 
-      setState(() {
-        _id = scheduleDetail['id'];
-        _title = scheduleDetail['title'];
-        _allDayFlag = scheduleDetail['all_day'];
-        _startDate = DateTime.parse(scheduleDetail['start_date']);
-        _endDate = DateTime.parse(scheduleDetail['end_date']);
-        _notificationFlag = scheduleDetail['notification_flag'];
-        _notification = scheduleDetail['notification'];
-        _repetitionFlag = scheduleDetail['repetition_flag'];
-        _repetition = scheduleDetail['repetition'];
-        _memo = scheduleDetail['memo'];
-        _place = scheduleDetail['place'];
-        _urlSchedule = scheduleDetail['url'];
+      if (this.mounted){
+        setState(() {
+          _id = scheduleDetail['id'];
+          _title = scheduleDetail['title'];
+          _allDayFlag = scheduleDetail['all_day'];
+          _startDate = DateTime.parse(scheduleDetail['start_date']);
+          _endDate = DateTime.parse(scheduleDetail['end_date']);
+          _notificationFlag = scheduleDetail['notification_flag'];
+          _notification = scheduleDetail['notification'];
+          _repetitionFlag = scheduleDetail['repetition_flag'];
+          _repetition = scheduleDetail['repetition'];
+          _memo = scheduleDetail['memo'];
+          _place = scheduleDetail['place'];
+          _urlSchedule = scheduleDetail['url'];
 
-        data = scheduleDetail;
-      });
+          data = scheduleDetail;
+          print(data);
+        });
+      }
     });
    }
 
@@ -149,17 +152,19 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   List<Widget> _buildListColumn(){
     List<Widget> list = [];
 
-    if(_place != ""){
+    print(_place);
+    if(_place != null){
+      print("debug");
       list.add(
         _buildListItem(Icons.location_on, _place)
       );
     }
-    if(_urlSchedule != ""){
+    if(_urlSchedule != null){
       list.add(
         _buildListItem(Icons.link, _urlSchedule)
       );
     }
-    if(_memo != ""){
+    if(_memo != null){
       list.add(
         _buildListItem(Icons.subject, _memo)
       );
@@ -183,7 +188,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       );
     }else{
       list.add(
-          _buildListItem(Icons.timer, _notification.toString())
+          _buildListItem(Icons.timer, _notification)
+//          _buildListItem(Icons.timer, _notification.toString())
       );
     }
 

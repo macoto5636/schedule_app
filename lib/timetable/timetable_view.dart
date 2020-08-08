@@ -2,11 +2,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'package:scheduleapp/timetable/timetable_view_default_style.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
 import 'package:scheduleapp/schedule_detail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class DayOfWeek{
@@ -27,8 +30,9 @@ class Schedules{
 }
 
 class TimeTableView extends StatefulWidget {
+  bool flag;
   Function(String) setCurrentDate;
-  TimeTableView(this.setCurrentDate);
+  TimeTableView(this.flag, this.setCurrentDate);
 
   @override
   _TimeTableViewState createState() => _TimeTableViewState();
@@ -95,52 +99,57 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   //現在の日付の予定取得
   void _getSchedules() async{
-    var url = "http://10.0.2.2:8000/api/calendar/" + "1";
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
+
+    var url = "http://10.0.2.2:8000/api/calendar/" + selectedCalendarId.toString();
     print(url);
     await http.get(url).then((response){
       print("Response status: ${response.statusCode}");
-        List list = json.decode(response.body);
+      List list = json.decode(response.body);
 
+      if (this.mounted){
         setState(() {
-        //id取得
-        _schedulesId = list.map<int>((value) {
-          return value['id'];
-        }).toList();
+          //id取得
+          _schedulesId = list.map<int>((value) {
+            return value['id'];
+          }).toList();
 
-        //タイトル取得
-        _schedulesTitle = list.map<String>((value) {
-          return value['title'];
-        }).toList();
+          //タイトル取得
+          _schedulesTitle = list.map<String>((value) {
+            return value['title'];
+          }).toList();
 
-        //all dayか否か
-        _schedulesAllDay = list.map<bool>((value){
-          if(value['all_day']==0){
-            return false;
-          }else{
-            return true;
+          //all dayか否か
+          _schedulesAllDay = list.map<bool>((value){
+            if(value['all_day']==0){
+              return false;
+            }else{
+              return true;
+            }
+          }).toList();
+
+          //開始日時取得
+          _schedulesStartDate = list.map<DateTime>((value) {
+            return DateTime.parse(value['start_date']);
+          }).toList();
+
+          //終了日時取得
+          _schedulesEndDate = list.map<DateTime>((value) {
+            return DateTime.parse(value['end_date']);
+          }).toList();
+
+          //色の取得
+          _schedulesColor = list.map<Color>((value) {
+            return Color(int.parse(value['color']));
+          }).toList();
+
+          for (int i = 0; i < _schedulesId.length; i++) {
+            _schedules.add(Schedules(
+                _schedulesId[i], _schedulesTitle[i], _schedulesAllDay[i], _schedulesStartDate[i], _schedulesEndDate[i], _schedulesColor[i]));
           }
-        }).toList();
-
-        //開始日時取得
-        _schedulesStartDate = list.map<DateTime>((value) {
-          return DateTime.parse(value['start_date']);
-        }).toList();
-
-        //終了日時取得
-        _schedulesEndDate = list.map<DateTime>((value) {
-          return DateTime.parse(value['end_date']);
-        }).toList();
-
-        //色の取得
-        _schedulesColor = list.map<Color>((value) {
-          return Color(int.parse(value['color']));
-        }).toList();
-
-        for (int i = 0; i < _schedulesId.length; i++) {
-          _schedules.add(Schedules(
-              _schedulesId[i], _schedulesTitle[i], _schedulesAllDay[i], _schedulesStartDate[i], _schedulesEndDate[i], _schedulesColor[i]));
-        }
-      });
+        });
+      }
     });
   }
 
@@ -232,7 +241,7 @@ class _TimeTableViewState extends State<TimeTableView>{
                     child:GestureDetector(
                       onTap: onTapCurrentDate,
                       child: Text( _headerText,
-                        style: TextStyle(fontSize: 20),textAlign: TextAlign.center,),
+                        style: defaultHeaderTextStyle,textAlign: TextAlign.center,),
                     ),
                   ),
                   _rightButton(),
@@ -311,21 +320,15 @@ class _TimeTableViewState extends State<TimeTableView>{
         height: 60,
         decoration: BoxDecoration(
             border: Border(
-                top: BorderSide(
-                  color: Colors.grey,
-                  width: 0,
-                ),
-                bottom: BorderSide(
-                  color: Colors.grey,
-                  width: 0,
-                )
+                top: defaultBorderSide,
+                bottom: defaultBorderSide,
             )
         ),
         child: Row(
           children: [
             Container(
               width: 60.0,
-              child: Text("終日", textAlign: TextAlign.center,),
+              child: Text("終日", style: defaultPlaneTextStyle, textAlign: TextAlign.center,),
             ),
             Expanded(
               child:SingleChildScrollView(
@@ -341,14 +344,10 @@ class _TimeTableViewState extends State<TimeTableView>{
                       child:Container(
                         margin: EdgeInsets.all(2.0),
                         height: 30,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: scheduleList[index].color),
-                          borderRadius: BorderRadius.circular(8),
-                          color: scheduleList[index].color,
-                        ),
+                        decoration: defaultScheduleBox(scheduleList[index].color),
                       child: Padding(
                         padding: EdgeInsets.all(3.0),
-                        child: Text(scheduleList[index].title, style: TextStyle(color: Colors.white), textAlign: TextAlign.center,),
+                        child: Text(scheduleList[index].title, style: defaultScheduleTextStyle, textAlign: TextAlign.center,),
                       )
                      )
                   );
@@ -373,14 +372,11 @@ class _TimeTableViewState extends State<TimeTableView>{
           width: 60.0,
           decoration: BoxDecoration(
             border: Border(
-              top: BorderSide(
-                color: Colors.grey,
-                width: 0,
-              )
+              top: defaultBorderSide,
             )
           ),
           child: Text(
-            hour.toString().padLeft(2,'0') + ":00", textAlign: TextAlign.center,
+            hour.toString().padLeft(2,'0') + ":00", style: defaultPlaneTextStyle, textAlign: TextAlign.center,
           ),
         );
       }).toList(),
@@ -398,10 +394,7 @@ class _TimeTableViewState extends State<TimeTableView>{
           height: height,
           decoration: BoxDecoration(
             border: Border(
-              top: BorderSide(
-                color: Colors.grey,
-                width: 0,
-              )
+              top: defaultBorderSide,
             )
           ),
         );
@@ -450,7 +443,7 @@ class _TimeTableViewState extends State<TimeTableView>{
     print("height:" + scheduleHeight.toString());
 
     return Positioned(
-        top: (scheduleList[num].startDate.hour * 60).toDouble(),
+        top: (scheduleList[num].startDate.hour * 60 + scheduleList[num].startDate.minute).toDouble(),
         left: (cnt2 * (width/cnt)).toDouble(),
         height: scheduleHeight.toDouble(),
         width: width/cnt,
@@ -458,17 +451,12 @@ class _TimeTableViewState extends State<TimeTableView>{
             behavior: HitTestBehavior.opaque,
             onTap: (){moveScheduleDetailPage(context, scheduleList[num].id);},
             child:Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: scheduleList[num].color),
-                borderRadius: BorderRadius.circular(8),
-                color: scheduleList[num].color,
-              ),
-              //color: scheduleList[num].color,
+              decoration: defaultScheduleBox(scheduleList[num].color),
               child: Column(
                 children: [
-                  Text(scheduleList[num].title, style: TextStyle(color: Colors.white),),
+                  Text(scheduleList[num].title, style: defaultScheduleTextStyle, overflow: TextOverflow.ellipsis,),
                   Text(scheduleList[num].startDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].startDate.minute.toString().padLeft(2,'0') + "〜" +
-                      scheduleList[num].endDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].endDate.minute.toString().padLeft(2, '0'),style: TextStyle(color: Colors.white),),
+                      scheduleList[num].endDate.hour.toString().padLeft(2,'0') + ":" + scheduleList[num].endDate.minute.toString().padLeft(2, '0'),style: defaultScheduleTextStyle, overflow: TextOverflow.ellipsis),
                 ],
               ),
             )
@@ -484,7 +472,7 @@ class _TimeTableViewState extends State<TimeTableView>{
       child: Container(
         width: 1000,
         child: Divider(
-          color: Colors.red,
+          color: defaultCurrentDateTimeDividerColor,
           thickness: 3,
         ),
       )

@@ -2,8 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
-
 class SubColorPage extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
