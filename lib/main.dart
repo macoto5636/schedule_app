@@ -70,6 +70,30 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int _page = 1;
 
+  callback(bool status){
+    setState(() {
+      if(_page == 1){
+        _page = 2;
+      }else{
+        _page = 1;
+      }
+      _change();
+    });
+  }
+
+  void _change() async{
+    await Future.delayed(Duration(milliseconds: 100),);
+    setState((){
+      if(_page == 1){
+        _page = 2;
+      }else{
+      _page = 1;
+      }
+    });
+  }
+
+  @override
+
   void setCurrentDate(String date){
     setState(() {
       currentDate = date;
@@ -99,11 +123,11 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             if(_page==1) Expanded(
-              child: CalendarView(currentDate,setCurrentDate),
+              child: CalendarView(setCurrentDate),
             ),
             if(_page==2) Expanded(
               child: TimeTableView(setCurrentDate),
-            )
+            ),
           ],
         )
       ),

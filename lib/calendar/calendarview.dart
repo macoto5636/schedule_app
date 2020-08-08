@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -5,6 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
 
 import 'package:scheduleapp/schedule_detail.dart';
+
+import 'package:scheduleapp/network_utils/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:scheduleapp/extension_diary/diary_detail_page.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -15,11 +22,24 @@ class DayOfWeek{
   DayOfWeek(this.id, this.name);
 }
 
+class Schedules{
+  int id;
+  String title;
+  bool allDay;
+  DateTime startDate;
+  DateTime endDate;
+  Color color;
+  //スケジュールか拡張機能か識別するためのID
+  //(0:Schedule, 1:diary)
+  int typeId;
+
+  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId);
+}
+
 class CalendarView extends StatefulWidget{
   //String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
-  bool flag;
   Function(String) setCurrentDate;
-  CalendarView(this.flag, this.setCurrentDate);
+  CalendarView(this.setCurrentDate);
 
   @override
   _CalendarState createState() => new _CalendarState();
@@ -42,13 +62,10 @@ class _CalendarState extends State<CalendarView>{
   PageController pageController = PageController(initialPage: 1);
   int currentMonthPage = 1; //今月のページ
 
-  //カレンダーの予定
-  List<int> _schedulesId = [];
-  List<String> _schedulesTitle = [];
-  List<bool> _schedulesAllDay = [];
-  List<DateTime> _schedulesStartDate = [];
-  List<DateTime> _schedulesEndDate = [];
-  List<Color> _schedulesColor = [];
+  List<Schedules> _schedules = [];
+
+  //  日記テーブルの内容の変更を検知するフラグ
+  var _rebuildFlag;
 
   //曜日定義
   final dayOfWeek = [
@@ -66,7 +83,8 @@ class _CalendarState extends State<CalendarView>{
   initState(){
     super.initState();
 
-    getSchedules(1);
+    getSchedules();
+
     _currentDate = DateTime.now();
     _selectDate = _currentDate;
     _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
@@ -84,15 +102,16 @@ class _CalendarState extends State<CalendarView>{
     _dates.add(_getTime(_currentDate.year, _currentDate.month));
     _dates.add(_getTime(nextMonth.year, nextMonth.month));
 
-    print("flag:" + widget.flag.toString());
   }
 
-  ///
-  ///予定を取得する
-  ///@param calendar_id
-  ///@return List
-  ///
-  void getSchedules(int id) async{
+  callback(bool status){
+    setState(() {
+      _rebuildFlag = status;
+    });
+  }
+
+  //予定を取得する
+  void getSchedules() async{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
 
@@ -103,55 +122,120 @@ class _CalendarState extends State<CalendarView>{
 //      print("Response body: ${response.body}");
       List list = json.decode(response.body);
 
-      setState(() {
-      //id取得
-      _schedulesId = list.map<int>((value){
-        return value['id'];
-      }).toList();
+      if(mounted) {
+        setState(() {
+          //id取得
+          List<int> schedulesId = list.map<int>((value) {
+            return value['id'];
+          }).toList();
 
-      //タイトル取得
-      _schedulesTitle = list.map<String>((value){
-        return value['title'];
-      }).toList();
+          //タイトル取得
+          List<String> schedulesTitle = list.map<String>((value) {
+            return value['title'];
+          }).toList();
 
-      //all dayか否か
-      _schedulesAllDay = list.map<bool>((value){
-        if(value['all_day']==0){
-          return false;
-        }else{
-          return true;
-        }
-      }).toList();
+          //all dayか否か
+          List<bool> schedulesAllDay = list.map<bool>((value) {
+            if (value['all_day'] == 0) {
+              return false;
+            } else {
+              return true;
+            }
+          }).toList();
 
-      //開始日時取得
-      _schedulesStartDate = list.map<DateTime>((value){
-        return DateTime.parse(value['start_date']);
-      }).toList();
+          //開始日時取得
+          List<DateTime> schedulesStartDate = list.map<DateTime>((value) {
+            return DateTime.parse(value['start_date']);
+          }).toList();
 
-      //終了日時取得
-      _schedulesEndDate = list.map<DateTime>((value){
-        return DateTime.parse(value['end_date']);
-      }).toList();
+          //終了日時取得
+          List<DateTime> schedulesEndDate = list.map<DateTime>((value) {
+            return DateTime.parse(value['end_date']);
+          }).toList();
 
-      //色の取得
-      _schedulesColor = list.map<Color>((value){
-        return Color(int.parse(value['color']));
-      }).toList();
-      });
+          //色の取得
+          List<Color> schedulesColor = list.map<Color>((value) {
+            return Color(int.parse(value['color']));
+          }).toList();
 
+          for (int i = 0; i < schedulesId.length; i++) {
+            _schedules.add(Schedules(
+                schedulesId[i],
+                schedulesTitle[i],
+                schedulesAllDay[i],
+                schedulesStartDate[i],
+                schedulesEndDate[i],
+                schedulesColor[i],
+                0));
+          }
 
+          getPlugin();
+        });
+      }
     });
-
+    print("schedule end");
   }
 
-  ///
-  ///曜日に合わせてテキストの色を変更する
-  ///土曜日なら青、日曜日なら赤、月が違うなら灰
-  ///@param id(曜日のID）
-  ///@param name(日にち)
-  ///@param flg(月が違うかどうかのフラグ)
-  ///@return widget text
-  ///
+  //拡張機能持っているか否か
+  void getPlugin() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
+    http.Response response = await Network().getData("extension/addlist/$calendarId");
+    List list = json.decode(response.body);
+
+    print("Response status: ${response.statusCode}");
+
+    List<int> extensionId = list.map<int>((value){
+      return value['id'];
+    }).toList();
+
+    for(int i=0; i<extensionId.length; i++){
+      //diaryがある時
+      if(extensionId[i] == 1){
+        getDiary();
+      }
+    }
+  }
+
+  //日記取得
+  void getDiary() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
+    http.Response response = await Network().getData("diary/get/$calendarId");
+    List list = json.decode(response.body);
+
+    List<int> diaryId = list.map<int>((value){
+      return value['id'];
+    }).toList();
+
+    List<String> diaryArticle = list.map<String>((value){
+      return value['article'];
+    }).toList();
+
+    List<DateTime> diaryDate = list.map<DateTime>((value){
+      return DateTime.parse(value['date']);
+    }).toList();
+
+    if(mounted) {
+      setState(() {
+        for (int i = 0; i < diaryId.length; i++) {
+          _schedules.add(Schedules(
+              diaryId[i],
+              diaryArticle[i],
+              true,
+              diaryDate[i],
+              diaryDate[i],
+              diaryColor,
+              1));
+        }
+      });
+    }
+  }
+
+  //曜日に合わせてテキストの色を変更する
+  //土曜日なら青、日曜日なら赤、月が違うなら灰
   Widget _changeText(int id, String name, int flg){
     Widget text;
     if(id == 6){
@@ -275,16 +359,38 @@ class _CalendarState extends State<CalendarView>{
     await showDialog(
     context: context,
     builder: (BuildContext context) => new AlertDialog(
-      title: new Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")"
-          ,style: defaultDialogTitleTextStyle,),
+      title: RichText(
+              text: TextSpan(
+                children: [
+                  WidgetSpan(
+                    child:Container(
+                      margin: EdgeInsets.only(bottom: 5.0),
+                      child: Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")",
+                        style: defaultDialogTitleTextStyle,),
+                    )
+                  ),
+                  WidgetSpan(
+                    child: GestureDetector(
+                      onTap: (){
+                        print("on tapped add icon!!!");
+                      },
+                      child: Container(
+                        margin: EdgeInsets.only(left: 67.0),
+                        child: Icon(Icons.add, size: 40, color: Colors.grey,),
+                      ),
+                    )
+                  )
+                ]
+              ),
+            ),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
             Divider(
-                color: defaultDividerColor,
+              color: defaultDividerColor,
             ),
             Container(
-              height: size.height ,
+              //height: size.height ,
               child:
                 SingleChildScrollView(
                 child:Column(
@@ -302,57 +408,102 @@ class _CalendarState extends State<CalendarView>{
   //予定
   List<Widget> _buildEvent(){
     List<Widget> widgets = [];
-    for(int i=0; i<_schedulesId.length; i++){
-      if(_selectDate == getDateShaping(_schedulesStartDate[i])){
-
+    for(int i=0; i<_schedules.length; i++){
+      if(_selectDate == getDateShaping(_schedules[i].startDate)){
         Widget widget =
         GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap:(){moveScheduleDetailPage(context, _schedulesId[i]);},
+            onTap:(){
+              if(_schedules[i].typeId == 0) {
+                moveScheduleDetailPage(context, _schedules[i].id);
+              }else if(_schedules[i].typeId == 1){
+                String date = _schedules[i].startDate.year.toString() + "-" + _schedules[i].startDate.month.toString().padLeft(2, '0') + "-" + _schedules[i].startDate.day.toString().padLeft(2, '0');
+                final diaryData = {
+                  "id" : _schedules[i].id,
+                  "article" : _schedules[i].title,
+                  "date" : date,
+                };
+                moveDiaryDetailPage(context, diaryData);
+              }
+              },
           child:Padding(
             padding: EdgeInsets.all(1.0),
           child:Container(
             width: 500,
             child:Row(
+              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 Container(
                   padding: EdgeInsets.all(10.0),
                   child: Column(
                       children: [
-                        if(_schedulesAllDay[i])
+                        if(_schedules[i].allDay)
                           Text("\n 終日 \n", style: defaultDialogTextStyle,),
-                        if(!_schedulesAllDay[i])
-                          Text(_schedulesStartDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesStartDate[i].minute.toString().padLeft(2, '0') + "\n ｜"
-                              + "\n" + _schedulesEndDate[i].hour.toString().padLeft(2, '0') + ":" + _schedulesEndDate[i].minute.toString().padLeft(2, '0'), style: defaultDialogTextStyle,),
+                        if(!_schedules[i].allDay)
+                          Text(_schedules[i].startDate.hour.toString().padLeft(2, '0') + ":" + _schedules[i].startDate.minute.toString().padLeft(2, '0') + "\n ｜"
+                              + "\n" + _schedules[i].endDate.hour.toString().padLeft(2, '0') + ":" + _schedules[i].endDate.minute.toString().padLeft(2, '0'), style: defaultDialogTextStyle,),
                       ],
                     )
                 ),
-                Expanded(
-                  child:Container(
-                    padding: EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        left: BorderSide(
-                          width: 5,
-                          color: _schedulesColor[i],
-                        ),
+                Container(
+                  height: 50,
+                  padding: EdgeInsets.all(10.0),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        width: 5,
+                        color: _schedules[i].color,
                       ),
                     ),
-                    child: Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child:Text(_schedulesTitle[i], style:defaultDialogTextStyle, overflow: TextOverflow.ellipsis,maxLines: 1,),
-                    )
                   ),
-                )
+                ),
+                if(_schedules[i].typeId == 0)
+                  Expanded(
+                    child: Container(
+                      child: Text(_schedules[i].title, style:defaultDialogTextStyle, overflow: TextOverflow.ellipsis,maxLines: 1,textAlign: TextAlign.left,),
+                    ),
+                  ),
+                if(_schedules[i].typeId == 1)
+                  Expanded(
+                    child: Container(
+                        child: Row(
+                          children: [
+                            //なぜかRichTextだと思う通りにいかず、ネスト地獄になった
+                            Padding(
+                              padding: EdgeInsets.only(right : 5.0),
+                              child: Icon(Icons.import_contacts, size: 20.0,),
+                            ),
+                            Expanded(
+                              child:Container(
+                                  child:Text(_schedules[i].title, style: defaultDialogTextStyle, overflow: TextOverflow.ellipsis,maxLines: 1,)
+                              ),
+                            ),
+                          ],
+                        )
+                    ),
+                  )
               ],
-              ),
             )
-          )
-        );
+          ),
+          ),
+    );
 
         widgets.add(widget);
       }
     }
+
+    //ダイアログの高さ調整
+    if(widgets.length < 8){
+      for(int i=0; i< 8 - widgets.length; i++){
+        widgets.add(
+          Container(
+            height: 120,
+            width: 300,
+          )
+        );
+      }
+    }
+
     return widgets;
   }
 
@@ -365,6 +516,16 @@ class _CalendarState extends State<CalendarView>{
           return ScheduleDetailPage(id);
         },
       ),
+    );
+  }
+
+  //日記詳細
+  moveDiaryDetailPage(BuildContext context, data){
+    Navigator.of(context).pop();
+    Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DiaryDetailPage(diaryData: data,callback: callback),
+        )
     );
   }
 
@@ -498,16 +659,43 @@ class _CalendarState extends State<CalendarView>{
   //その日の予定
   List<Widget> _buildSchedule(DateTime date){
     List<Widget> widgets = [];
-    for(int i=0; i<_schedulesStartDate.length; i++){
-      if(date == getDateShaping(_schedulesStartDate[i])){
+    for(int i=0; i<_schedules.length; i++){
+      if(date == getDateShaping(_schedules[i].startDate)){
         Widget widget =
           Padding(
               padding: EdgeInsets.all(1.0),
             child:
             Container(
               width: 300,
-              child: Text(_schedulesTitle[i], style: defaultScheduleTextStyle, textAlign: TextAlign.center, overflow: TextOverflow.ellipsis,maxLines: 1),
-              color: _schedulesColor[i]
+              color: _schedules[i].color,
+              child: RichText(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: defaultScheduleTextStyle,
+                  children: [
+                    if(_schedules[i].typeId == 0)
+                      TextSpan(
+                        text: _schedules[i].title,
+                      ),
+                    if(_schedules[i].typeId == 1)
+                      TextSpan(
+                        children: [
+                          WidgetSpan(
+                            child: Padding(
+                              padding: EdgeInsets.only(right: 5.0),
+                              child: Icon(Icons.import_contacts, size: 11.0, color: Colors.white,),
+                            )
+                          ),
+                          TextSpan(
+                            text: "日記",
+                          )
+                        ]
+                      )
+                  ]
+                ),
+              ),
             )
           );
         widgets.add(widget);
@@ -585,21 +773,21 @@ class _CalendarState extends State<CalendarView>{
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Column(
-        children: <Widget>[
-          Container(
-            child:Expanded(
-              child:PageView(
-                onPageChanged: onPageChanged,
-                controller: pageController,
-                children: List<Widget>.generate(_dates.length,(index){
-                  return _buildTable(_dates[index]);
-                })
+        child: Column(
+          children: <Widget>[
+            Container(
+              child:Expanded(
+                child:PageView(
+                    onPageChanged: onPageChanged,
+                    controller: pageController,
+                    children: List<Widget>.generate(_dates.length,(index){
+                      return _buildTable(_dates[index]);
+                    })
+                ),
               ),
             ),
-          ),
-        ],
-      )
+          ],
+        )
     );
   }
 }

@@ -152,9 +152,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   List<Widget> _buildListColumn(){
     List<Widget> list = [];
 
-    print(_place);
     if(_place != null){
-      print("debug");
       list.add(
         _buildListItem(Icons.location_on, _place)
       );
@@ -189,7 +187,6 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     }else{
       list.add(
           _buildListItem(Icons.timer, _notification)
-//          _buildListItem(Icons.timer, _notification.toString())
       );
     }
 

@@ -1,10 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:scheduleapp/network_utils/api.dart';
-import 'package:flutter_datetime_picker/src/date_format.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'schedule_add_repeat_page.dart';
 import 'schedule_add_notice_page.dart';
@@ -24,12 +26,12 @@ class ScheduleEditPage extends  StatefulWidget{
         "repetition_flag" : false,
         "repetition" : 0,
         "notification_flag" : false,
-        "notification" : 0,
-        "color" : "0xFF40C4FF",
-        "memo" : "memo",
-        "place" : "place",
-        "url" : "url",
-        "calendar_id" : 1,
+        "notification" : "1000000",
+        "color" : "4282434815",
+        "memo" : "",
+        "place" : "",
+        "url" : "",
+        "calendar_id": 1,
       };
     }else{
       data["start_date"] = DateTime.parse(data["start_date"].toString());
@@ -57,7 +59,7 @@ class ScheduleEditPage extends  StatefulWidget{
 }
 
 class ScheduleEditPageState extends State<ScheduleEditPage>{
-  final Map data;
+  final Map originalData;
   Map scheduleData;
 
   var _titleController;
@@ -71,12 +73,12 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
 
   var iconSIze = 25.0;
 
-  ScheduleEditPageState(this.data);
+  ScheduleEditPageState(this.originalData);
 
   @override
   void initState(){
     super.initState();
-    scheduleData = widget.data;
+    scheduleData = {...widget.data};
 
     if (!scheduleData['all_day']) {
       sTimeText = DateFormat('yyyy/MM/dd HH:mm').format(scheduleData['start_date']).toString();
@@ -95,7 +97,7 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
         }
       }
       context.read<RepeatChecker>().set(scheduleData["repetition"]);
-      context.read<NoticeChecker>().set(scheduleData["notification"]);
+      context.read<NoticeChecker>().setString(scheduleData["notification"]);
     });
 
     _titleController = TextEditingController(text: scheduleData["title"]);
@@ -306,13 +308,7 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
               hintText: "メモ",
             ),
           ),
-        ), /*ListTile(
-                leading: Icon(
-                  Icons.,
-                  size: iconSIze,
-                ),
-                title: Text(""),
-              ),*/
+        ),
       ],
     );
   }
@@ -334,18 +330,22 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
   //初期値か編集済みかをチェック
   bool _inputChangeCheck(){
     bool value;
-//    if(_titleController.text != "" || scheduleData['all_day'] == true || context.read<RepeatChecker>().flg ||
-//        context.read<NoticeChecker>().flg || context.read<ColorChecker>().checked != 6 ||
-//        _placeController.text != "" || _urlController.text != "" || _memoController.text != ""){
-//      value = true;
-//    }else{
-//      value = false;
-//    }
     //予定情報をMap:scheduleDataにセットする
     set();
-    print(data);
+    print(originalData);
     print(scheduleData);
-    if(data != scheduleData){
+    if(
+        originalData["title"] != scheduleData["title"] ||
+        originalData["all_day"] != scheduleData["all_day"] ||
+        originalData["start_date"] != scheduleData["start_date"] ||
+        originalData["end_date"] != scheduleData["end_date"] ||
+        originalData["repetition"] != scheduleData["repetition"] ||
+        originalData["notification"] != scheduleData["notification"] ||
+        originalData["color"] != scheduleData["color"] ||
+        originalData["memo"] != scheduleData["memo"] ||
+        originalData["place"] != scheduleData["place"] ||
+        originalData["url"] != scheduleData["url"]
+    ){
       value = true;
     }else{
       value = false;
@@ -496,6 +496,10 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
 
   //入力された予定をデータベースに登録,更新する
   void saveData() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
+    scheduleData["calendar_id"] = selectedCalendarId.toString();
+
     //開始・終了時刻をデータベースと合わせるためにフォーマットする
     scheduleData["start_date"] = DateFormat('yy-MM-dd HH:mm').format(scheduleData["start_date"]);
     scheduleData["end_date"] = DateFormat('yy-MM-dd HH:mm').format(scheduleData["end_date"]);
@@ -507,6 +511,7 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
     //引数がnullなら新しい予定を登録し
     //nullでないなら更新処理を行う
     if(scheduleData["id"] == null){
+      print("debug");
       var result = await Network().postData(scheduleData, "schedules/store");
     } else {
       var result = await Network().postData(
@@ -514,11 +519,20 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
     }
   }
   void set(){
+    String notification = "";
+    List notificationList = context.read<NoticeChecker>().listChecked;
+    for(int i = 0; i < notificationList.length; i++){
+      if(notificationList[i]){
+        notification = notification + "1";
+      }else{
+        notification = notification + "0";
+      }
+    }
     //プロバイダーで保持している予定情報を代入する
     scheduleData["repetition_flag"] = context.read<RepeatChecker>().flg;
     scheduleData["repetition"] = context.read<RepeatChecker>().checked;
     scheduleData["notification_flag"] = context.read<NoticeChecker>().flg;
-    scheduleData["notification"] = context.read<NoticeChecker>().checked;
+    scheduleData["notification"] = notification;
     scheduleData["color"] = context.read<ColorChecker>().listColor[context.read<ColorChecker>().checked].toString();
 
     //TextFieldの値を代入する
