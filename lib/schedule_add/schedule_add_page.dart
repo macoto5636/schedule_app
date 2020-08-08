@@ -41,6 +41,12 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
       .format(DateTime.now().add(new Duration(hours: 1)))
       .toString();
 
+  @override
+  void initState() {
+    super.initState();
+    _clear();
+  }
+
   //
   void _onChanged(bool value) {
     setState(() {
@@ -117,7 +123,7 @@ class ScheduleAddPageState extends State<ScheduleAddPage>{
                 );
               }else{
                 saveData();
-                _clear();
+                //_clear();
                 Navigator.of(context).pop();
               }
             },

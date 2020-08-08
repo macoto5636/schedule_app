@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+//拡張機能
+const Color diaryColor = Colors.amber;
+
+
 const TextStyle defaultHeaderTextStyle = const TextStyle(
   fontSize: 20.0,
   color: Colors.black,

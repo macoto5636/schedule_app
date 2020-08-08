@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 
 import 'package:scheduleapp/timetable/timetable_view_default_style.dart';
 
+import 'package:scheduleapp/network_utils/api.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:scheduleapp/extension_diary/diary_detail_page.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -25,14 +30,16 @@ class Schedules{
   DateTime startDate;
   DateTime endDate;
   Color color;
+  //スケジュールか拡張機能か識別するためのID
+  //(0:Schedule, 1:diary)
+  int typeId;
 
-  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color);
+  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId);
 }
 
 class TimeTableView extends StatefulWidget {
-  bool flag;
   Function(String) setCurrentDate;
-  TimeTableView(this.flag, this.setCurrentDate);
+  TimeTableView(this.setCurrentDate);
 
   @override
   _TimeTableViewState createState() => _TimeTableViewState();
@@ -73,6 +80,9 @@ class _TimeTableViewState extends State<TimeTableView>{
   PageController _pageController = PageController(initialPage: 1);
   int _currentMonthPage = 1; //今月のページ
 
+  //  日記テーブルの内容の変更を検知するフラグ
+  var _rebuildFlag = true;
+
   @override
   void initState() {
     super.initState();
@@ -82,11 +92,13 @@ class _TimeTableViewState extends State<TimeTableView>{
     _dates.add(_currentDate);
     _dates.add(DateTime(_currentDate.year, _currentDate.month, _currentDate.day + 1));
 
-    _getSchedules();
-
+    if(mounted) {
+      _getSchedules();
+    }
     _headerText = _currentDate.day.toString() + "日" + "(" + dayOfWeek[_currentDate.weekday -1].name + ")";
 
     _scrollController = ScrollController();
+
 
   }
 
@@ -96,6 +108,11 @@ class _TimeTableViewState extends State<TimeTableView>{
     _scrollController.dispose();
   }
 
+  callback(bool status){
+    setState(() {
+      _rebuildFlag = status;
+    });
+  }
 
   //現在の日付の予定取得
   void _getSchedules() async{
@@ -104,51 +121,117 @@ class _TimeTableViewState extends State<TimeTableView>{
 
     var url = "http://10.0.2.2:8000/api/calendar/" + selectedCalendarId.toString();
     print(url);
-    await http.get(url).then((response){
+    await http.get(url).then((response) {
       print("Response status: ${response.statusCode}");
-        List list = json.decode(response.body);
-
+      List list = json.decode(response.body);
+      if(mounted) {
         setState(() {
-        //id取得
-        _schedulesId = list.map<int>((value) {
-          return value['id'];
-        }).toList();
+          //id取得
+          _schedulesId = list.map<int>((value) {
+            return value['id'];
+          }).toList();
 
-        //タイトル取得
-        _schedulesTitle = list.map<String>((value) {
-          return value['title'];
-        }).toList();
+          //タイトル取得
+          _schedulesTitle = list.map<String>((value) {
+            return value['title'];
+          }).toList();
 
-        //all dayか否か
-        _schedulesAllDay = list.map<bool>((value){
-          if(value['all_day']==0){
-            return false;
-          }else{
-            return true;
+          //all dayか否か
+          _schedulesAllDay = list.map<bool>((value) {
+            if (value['all_day'] == 0) {
+              return false;
+            } else {
+              return true;
+            }
+          }).toList();
+
+          //開始日時取得
+          _schedulesStartDate = list.map<DateTime>((value) {
+            return DateTime.parse(value['start_date']);
+          }).toList();
+
+          //終了日時取得
+          _schedulesEndDate = list.map<DateTime>((value) {
+            return DateTime.parse(value['end_date']);
+          }).toList();
+
+          //色の取得
+          _schedulesColor = list.map<Color>((value) {
+            return Color(int.parse(value['color']));
+          }).toList();
+
+          for (int i = 0; i < _schedulesId.length; i++) {
+            _schedules.add(Schedules(
+                _schedulesId[i],
+                _schedulesTitle[i],
+                _schedulesAllDay[i],
+                _schedulesStartDate[i],
+                _schedulesEndDate[i],
+                _schedulesColor[i],
+                0));
           }
-        }).toList();
+          getPlugin();
+        });
+      }
+      });
+  }
 
-        //開始日時取得
-        _schedulesStartDate = list.map<DateTime>((value) {
-          return DateTime.parse(value['start_date']);
-        }).toList();
+  //拡張機能持っているか否か
+  void getPlugin() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
-        //終了日時取得
-        _schedulesEndDate = list.map<DateTime>((value) {
-          return DateTime.parse(value['end_date']);
-        }).toList();
+    http.Response response = await Network().getData("extension/addlist/$calendarId");
+    List list = json.decode(response.body);
 
-        //色の取得
-        _schedulesColor = list.map<Color>((value) {
-          return Color(int.parse(value['color']));
-        }).toList();
+    print("Response status: ${response.statusCode}");
 
-        for (int i = 0; i < _schedulesId.length; i++) {
+    List<int> extensionId = list.map<int>((value){
+      return value['id'];
+    }).toList();
+
+    for(int i=0; i<extensionId.length; i++){
+      //diaryがある時
+      if(extensionId[i] == 1){
+        getDiary();
+      }
+    }
+  }
+
+  //日記取得
+  void getDiary() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
+    http.Response response = await Network().getData("diary/get/$calendarId");
+    List list = json.decode(response.body);
+
+    List<int> diaryId = list.map<int>((value){
+      return value['id'];
+    }).toList();
+
+    List<String> diaryArticle = list.map<String>((value){
+      return value['article'];
+    }).toList();
+
+    List<DateTime> diaryDate = list.map<DateTime>((value){
+      return DateTime.parse(value['date']);
+    }).toList();
+
+    if(this.mounted) {
+      setState(() {
+        for (int i = 0; i < diaryId.length; i++) {
           _schedules.add(Schedules(
-              _schedulesId[i], _schedulesTitle[i], _schedulesAllDay[i], _schedulesStartDate[i], _schedulesEndDate[i], _schedulesColor[i]));
+              diaryId[i],
+              diaryArticle[i],
+              true,
+              diaryDate[i],
+              diaryDate[i],
+              diaryColor,
+              1));
         }
       });
-    });
+    }
   }
 
   //日が切り替わったときの処理
@@ -222,6 +305,15 @@ class _TimeTableViewState extends State<TimeTableView>{
           return ScheduleDetailPage(id);
         },
       ),
+    );
+  }
+
+  //日記詳細
+  moveDiaryDetailPage(BuildContext context, data){
+    Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DiaryDetailPage(diaryData: data,callback: callback),
+        )
     );
   }
 
@@ -335,21 +427,58 @@ class _TimeTableViewState extends State<TimeTableView>{
                   children: [
                     for(int i=0;i<scheduleList.length; i++)
                       i
-                  ].map((index){
+                  ].map((num){
                   return GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: (){moveScheduleDetailPage(context, scheduleList[index].id);},
+                      onTap: (){
+                          if(scheduleList[num].typeId == 0) {
+                            moveScheduleDetailPage(
+                                context, scheduleList[num].id);
+                          }else if(scheduleList[num].typeId == 1){
+                            String date = scheduleList[num].startDate.year.toString() + "-" + scheduleList[num].startDate.month.toString().padLeft(2, '0') + "-" + scheduleList[num].startDate.day.toString().padLeft(2, '0');
+                            final diaryData = {
+                              "id" : scheduleList[num].id,
+                              "article" : scheduleList[num].title,
+                              "date" : date,
+                            };
+                            moveDiaryDetailPage(context, diaryData);
+                          }
+                        },
                       child:Container(
                         margin: EdgeInsets.all(2.0),
                         height: 30,
-                        decoration: defaultScheduleBox(scheduleList[index].color),
-                      child: Padding(
-                        padding: EdgeInsets.all(3.0),
-                        child: Text(scheduleList[index].title, style: defaultScheduleTextStyle, textAlign: TextAlign.center,),
+                        decoration: defaultScheduleBox(scheduleList[num].color),
+                        child: Padding(
+                          padding: EdgeInsets.all(3.0),
+                          child: RichText(
+                            text: TextSpan(
+                              style: defaultScheduleTextStyle,
+                              children:[
+                                if(scheduleList[num].typeId == 0)
+                                  TextSpan(
+                                    text: scheduleList[num].title,
+                                  )
+                                else if(scheduleList[num].typeId == 1)
+                                  TextSpan(
+                                    children:[
+                                      WidgetSpan(
+                                        child: Padding(
+                                          padding: EdgeInsets.only(right: 5.0),
+                                          child: Icon(Icons.import_contacts, size: 15.0, color: Colors.white,),
+                                        )
+                                      ),
+                                      TextSpan(
+                                        text: "日記",
+                                      )
+                                    ]
+                                  )
+                              ]
+                            ),
+                          ),
+                        )
                       )
-                     )
-                  );
-              }).toList(),
+                    );
+                }).toList(),
               )
               )
             )
@@ -438,7 +567,7 @@ class _TimeTableViewState extends State<TimeTableView>{
 
     scheduleHeight = _getDateTimeDiff(scheduleList[num].startDate, scheduleList[num].endDate);
     scheduleWidth = width;
-    print("height:" + scheduleHeight.toString());
+    //print("height:" + scheduleHeight.toString());
 
     return Positioned(
         top: (scheduleList[num].startDate.hour * 60 + scheduleList[num].startDate.minute).toDouble(),
@@ -447,7 +576,11 @@ class _TimeTableViewState extends State<TimeTableView>{
         width: width/cnt,
         child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: (){moveScheduleDetailPage(context, scheduleList[num].id);},
+            onTap: (){
+                if(scheduleList[num].typeId == 0){
+                  moveScheduleDetailPage(context, scheduleList[num].id);
+                }
+              },
             child:Container(
               decoration: defaultScheduleBox(scheduleList[num].color),
               child: Column(
