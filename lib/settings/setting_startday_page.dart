@@ -32,20 +32,6 @@ class _SettingStartDayPageState extends State<SettingStartDayPage> {
     _futures = getStartDay();
   }
 
-  void callback(){ rebuild = !rebuild; }
-
-  Future<void> _checkIndex(int selectIndex) async {
-    final SharedPreferences prefs = await _prefs;
-//    final int counter = (prefs.getInt('counter') ?? 0) + 1;
-
-    setState(() {
-      _index = prefs.setInt(_startDayKey, selectIndex).then((bool success) {
-        return selectIndex;
-      }) as int;
-    });
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,16 +40,6 @@ class _SettingStartDayPageState extends State<SettingStartDayPage> {
         title: Text("週の開始曜日の変更"),
       ),
       body: Container(
-//          child: ListView.builder(
-//            itemCount: days.length,
-//            itemBuilder: (BuildContext context,int index){
-//              return ListTile(
-//                leading: checkListItem(index),
-//                title: Text(days[index]),
-//                onTap: () => _checkIndex(index + 1),
-//              );
-//            },
-//          ),
         child: FutureBuilder(
           future: _futures,
           builder: (BuildContext context,AsyncSnapshot snapshot){
@@ -90,7 +66,7 @@ class _SettingStartDayPageState extends State<SettingStartDayPage> {
   //現在の開始曜日の設定値を取得(1~7)
   Future<bool> getStartDay() async{
     SharedPreferences pref = await SharedPreferences.getInstance();
-    _index = pref.getInt(_startDayKey);
+    _index = pref.getInt(_startDayKey) ?? 1;
     return true;
   }
 
@@ -111,6 +87,5 @@ class _SettingStartDayPageState extends State<SettingStartDayPage> {
     setState(() {
       _index = value + 1;
     });
-//    callback();
   }
 }
