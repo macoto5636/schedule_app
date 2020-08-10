@@ -6,8 +6,10 @@ import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import 'app_theme.dart';
 import 'extension_add_page.dart';
 import 'extension_diary/diary_main_page.dart';
+import 'network_utils/api.dart';
 
 class ExtensionDrawer extends StatefulWidget {
   @override
@@ -40,6 +42,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
       children: <Widget>[
         Container(
           height: 80.0,
+          color: getPrimaryColor(context),
           child: DrawerHeader(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,7 +62,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
               ],
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+//              color: Theme.of(context).primaryColor,
             ),
           ),
         ),
@@ -75,6 +78,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
 
 //  認証済判定
 //  未認証なら「ログイン会員登録」ボタン表示
+//  ログインしていないとアプリは使えないので不必要
   Widget authButton(){
     var _token = _getPrefItems();
 
@@ -115,7 +119,6 @@ class _ExtensionListViewState extends State<ExtensionListView> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    _getData();
   }
 
   Future<bool> _getData() async {
@@ -124,21 +127,9 @@ class _ExtensionListViewState extends State<ExtensionListView> {
     token = jsonDecode(localStorage.getString('token'))['token'];
     calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
-//    HTTPリクエストのヘッダー部分
-//    トークンをセットしている
-    Map<String, String> requestHeaders = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': "Bearer $token"
-    };
+    http.Response res = await Network().getData("extension/addlist/$calendarId");
 
-    final String url = "http://10.0.2.2:8000/api/extension/addlist/$calendarId";
-    http.Response response = await http.get(
-        url,
-        headers: requestHeaders
-    );
-
-    extensions = jsonDecode(response.body);
+    extensions = jsonDecode(res.body);
 
     extensions.forEach((element) {
       if(!element["flag"]){
@@ -165,7 +156,6 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                     itemBuilder: (BuildContext context, int index){
                       return Container(
                         decoration: BoxDecoration(
-                          color: Colors.blueGrey[50],
                           border: Border(
                             top: BorderSide(color: Colors.grey),
                             bottom: BorderSide(color: Colors.grey)

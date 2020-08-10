@@ -17,7 +17,6 @@ import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
-import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:async';
@@ -117,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ExtensionDrawer()
       ),
       appBar: AppBar(
+//        backgroundColor: getPrimaryColor(context),
         centerTitle: true,
         title: Text(currentDate),
         actions: <Widget>[

@@ -1,27 +1,56 @@
 import 'package:flutter/material.dart';
 
 final Map<String,List<dynamic>> themes = {
-  'themeBlueLight'  : [themeBlueLight,"ライトブルー"],
-  'themeGreenLight' : [themeGreenLight,"ライトグリーン"],
-  'themePinkLight'  : [themePinkLight,"ライトピンク"]
+  'themeLightBlue'  : [themeLightBlue,"ライトブルー"],
+  'themeLightGreen' : [themeLightGreen,"ライトグリーン"],
+  'themeLightPink'  : [themeLightPink,"ライトピンク"],
+  'themeDarkBlue'   : [themeDarkBlue,"ダークブルー"],
+  'themeDarkGreen'  : [themeDarkGreen,"ダークグリーン"]
 };
 
+final defaultFloatingActionButtonTheme = FloatingActionButtonThemeData(foregroundColor: Colors.white);
 
-final themeBlueLight = ThemeData(
+//テーマ設定
+final themeLightBlue = ThemeData(
     primarySwatch: Colors.blue,
+    accentColor: Colors.blue,
+    floatingActionButtonTheme: defaultFloatingActionButtonTheme,
     brightness: Brightness.light
 );
 
-final themeGreenLight = ThemeData(
+final themeLightGreen = ThemeData(
     primarySwatch: Colors.green,
+    accentColor: Colors.green,
+    floatingActionButtonTheme: defaultFloatingActionButtonTheme,
     brightness: Brightness.light
 );
 
-final themePinkLight = ThemeData(
+final themeLightPink = ThemeData(
     primarySwatch: Colors.pink,
+    accentColor: Colors.pink,
+    floatingActionButtonTheme: defaultFloatingActionButtonTheme,
     brightness: Brightness.light
 );
 
+final themeDarkBlue = ThemeData(
+  primarySwatch: Colors.blue,
+  accentColor: Colors.blue,
+  floatingActionButtonTheme: defaultFloatingActionButtonTheme,
+  primaryColorDark: Colors.blue,
+  brightness: Brightness.dark
+);
+
+final themeDarkGreen = ThemeData(
+    primarySwatch: Colors.green,
+    accentColor: Colors.green,
+    floatingActionButtonTheme: defaultFloatingActionButtonTheme,
+    primaryColorDark: Colors.green,
+    brightness: Brightness.dark
+);
+
+
+
+//テーマ用のプロバイダー
 class ThemeNotifier with ChangeNotifier {
   String _themeKey;
   ThemeData _themeData;
@@ -39,3 +68,7 @@ class ThemeNotifier with ChangeNotifier {
     notifyListeners();
   }
 }
+
+//ダークテーマとライトテーマを判定して色を返す
+getPrimaryColor(BuildContext context) =>
+    Theme.of(context).brightness == Brightness.dark ? Theme.of(context).primaryColorDark : Theme.of(context).primaryColor;
