@@ -9,7 +9,7 @@ class SettingPage extends StatelessWidget{
     return ListView(
       children: <Widget>[
         Container(
-          margin: EdgeInsets.only(top: 30, left: 15),
+          margin: EdgeInsets.only(left: 15,top: 30,bottom: 5),
           child: Text(
             "基本設定",
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
@@ -40,28 +40,28 @@ class SettingPage extends StatelessWidget{
               },
             )
         ),
+//        Container(
+//            decoration: new BoxDecoration(
+//              border: new Border(
+//                bottom: new BorderSide(color: Colors.grey),
+//              ),
+//            ),
+//            child: ListTile(
+//              title: Text('ロック機能'),
+//            )
+//        ),
+//        Container(
+//            decoration: new BoxDecoration(
+//              border: new Border(
+//                bottom: new BorderSide(color: Colors.grey),
+//              ),
+//            ),
+//            child: ListTile(
+//              title: Text('起動時画面'),
+//            )
+//        ),
         Container(
-            decoration: new BoxDecoration(
-              border: new Border(
-                bottom: new BorderSide(color: Colors.grey),
-              ),
-            ),
-            child: ListTile(
-              title: Text('ロック機能'),
-            )
-        ),
-        Container(
-            decoration: new BoxDecoration(
-              border: new Border(
-                bottom: new BorderSide(color: Colors.grey),
-              ),
-            ),
-            child: ListTile(
-              title: Text('起動時画面'),
-            )
-        ),
-        Container(
-          margin: EdgeInsets.only(top: 50, left: 15),
+          margin: EdgeInsets.only(left: 15,top: 50,bottom: 5),
           child: Text(
             "カレンダー",
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
@@ -82,6 +82,7 @@ class SettingPage extends StatelessWidget{
             ),
             child: ListTile(
               title: Text('週の開始曜日'),
+              trailing: Icon(Icons.arrow_forward_ios),
               onTap: (){
                 Navigator.push(
                     context,
