@@ -46,6 +46,8 @@ class CalendarView extends StatefulWidget{
 }
 
 class _CalendarState extends State<CalendarView>{
+  Future<bool> _futures;
+  static const String _startDayKey = 'start_day';
 
   DateTime _currentDate; //今日の日付
   int _currentMonth; //今月
@@ -82,25 +84,8 @@ class _CalendarState extends State<CalendarView>{
   @override
   initState(){
     super.initState();
-
     getSchedules();
-
-    _currentDate = DateTime.now();
-    _selectDate = _currentDate;
-    _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
-    _currentMonth = _currentDate.month;
-
-    headerText = _currentDate.year.toString() + "年" + _currentDate.month.toString() + "月";
-
-    DateTime previousMonth = DateTime(_currentDate.year, _currentDate.month, 0);
-    DateTime nextMonth = DateTime(_currentDate.year, _currentDate.month+2, 0);
-
-    //3か月分だけ取得
-    print("前月" +previousMonth.toString());
-    print("次月" + nextMonth.toString());
-    _dates.add(_getTime(previousMonth.year,previousMonth.month));
-    _dates.add(_getTime(_currentDate.year, _currentDate.month));
-    _dates.add(_getTime(nextMonth.year, nextMonth.month));
+    _futures = initExecution();
 
   }
 
@@ -181,6 +166,7 @@ class _CalendarState extends State<CalendarView>{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
+
     http.Response response = await Network().getData("extension/addlist/$calendarId");
     List list = json.decode(response.body);
 
@@ -255,6 +241,7 @@ class _CalendarState extends State<CalendarView>{
 
   //日付取得
   List<DateTime> _getTime(int year, int month){
+    print("_getTime : $weekStart");
 
     List<DateTime> days = [];
 
@@ -279,6 +266,7 @@ class _CalendarState extends State<CalendarView>{
     }
 
     //print("test = " + test.toString());
+    print(weekStart);
 
     int firstWeekday = firstDay.weekday + (weekStart - 1) + test;
     int lastWeekday = lastDay.weekday + (weekStart - 1) + test;
@@ -537,6 +525,9 @@ class _CalendarState extends State<CalendarView>{
   //月切り替わったときの処理
   void onPageChanged(pageId){
     print("pageId:" + pageId.toString());
+    for(int i=0; i < _dates.length; i++){
+      print(i.toString() + ":" + _dates[i].toString());
+    }
 
     if(pageId == _dates.length -1){
       DateTime tempDate = getDateTime(_dates.length-1, 10);
@@ -770,22 +761,58 @@ class _CalendarState extends State<CalendarView>{
     return DateTime(year,month,day);
   }
 
+  Future<bool> initExecution() async{
+    //設定値（週の開始曜日）を取得
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    setState(() {
+      weekStart = pref.getInt(_startDayKey);
+    });
+    print("weekStart : $weekStart");
+    _currentDate = DateTime.now();
+    _selectDate = _currentDate;
+    _currentDate = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
+    _currentMonth = _currentDate.month;
+
+    headerText = _currentDate.year.toString() + "年" + _currentDate.month.toString() + "月";
+
+    DateTime previousMonth = DateTime(_currentDate.year, _currentDate.month, 0);
+    DateTime nextMonth = DateTime(_currentDate.year, _currentDate.month+2, 0);
+
+    _dates.add(_getTime(previousMonth.year,previousMonth.month));
+    _dates.add(_getTime(_currentDate.year, _currentDate.month));
+    _dates.add(_getTime(nextMonth.year, nextMonth.month));
+
+    return true;
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
         child: Column(
           children: <Widget>[
-            Container(
-              child:Expanded(
-                child:PageView(
-                    onPageChanged: onPageChanged,
-                    controller: pageController,
-                    children: List<Widget>.generate(_dates.length,(index){
-                      return _buildTable(_dates[index]);
-                    })
-                ),
-              ),
-            ),
+            FutureBuilder(
+              future: _futures,
+              builder: (BuildContext context,AsyncSnapshot<bool> snapshot){
+                if(snapshot.hasData){
+                  return Container(
+                    child:Expanded(
+                      child:PageView(
+                          onPageChanged: onPageChanged,
+                          controller: pageController,
+                          children: List<Widget>.generate(_dates.length,(index){
+                            return _buildTable(_dates[index]);
+                          })
+                      ),
+                    ),
+                  );
+                }else{
+                  return Center(
+                      child: CircularProgressIndicator()
+                  );
+                }
+              },
+            )
           ],
         )
     );
