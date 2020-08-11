@@ -598,7 +598,7 @@ class _CalendarState extends State<CalendarView>{
             child: _buildCell(date),
             decoration: BoxDecoration(
               border: Border.all(width: 2, color: defaultBorderColor),
-              color: date == _currentDate ? defaultTodayBackgroundColor : defaultBackgroundColor,
+              color: date == _currentDate ? defaultTodayBackgroundColor : null,
             ),
           )
       );
@@ -609,7 +609,8 @@ class _CalendarState extends State<CalendarView>{
         child: Container(
           height: (size.height - 170) / row,
           child: _buildCell(date),
-          color: date==_currentDate ? defaultTodayBackgroundColor : defaultBackgroundColor,
+          color: date==_currentDate ? defaultTodayBackgroundColor : null
+//          color: date==_currentDate ? defaultTodayBackgroundColor : defaultBackgroundColor,
         ),
       );
     }

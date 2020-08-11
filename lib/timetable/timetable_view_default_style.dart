@@ -6,12 +6,12 @@ const Color diaryColor = Colors.amber;
 
 const TextStyle defaultHeaderTextStyle = const TextStyle(
   fontSize: 20.0,
-  color: Colors.black,
+//  color: Colors.black,
 );
 
 const TextStyle defaultPlaneTextStyle = const TextStyle(
   fontSize: 14.0,
-  color: Colors.black,
+//  color: Colors.black,
 );
 
 const TextStyle defaultScheduleTextStyle = const TextStyle(

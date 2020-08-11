@@ -6,7 +6,7 @@ const Color diaryColor = Colors.amber;
 //カレンダー部分
 const TextStyle defaultDaysTextStyle = const TextStyle(
   fontSize: 14.0,
-  color: Colors.black,
+//  color: Colors.black,
 );
 
 const TextStyle defaultSaturdayTextStyle = const TextStyle(
@@ -35,7 +35,7 @@ const TextStyle defaultScheduleTextStyle = const TextStyle(
   color: Colors.white,
 );
 
-const Color defaultTodayBackgroundColor = Colors.black26;
+Color defaultTodayBackgroundColor = Colors.black.withOpacity(0.3);
 
 const Color defaultBackgroundColor = Colors.white;
 

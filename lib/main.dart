@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:scheduleapp/app_theme.dart';
 import 'package:scheduleapp/calendar/calendar_change_page.dart';
 
 import 'package:scheduleapp/extention_drawer.dart';
@@ -16,37 +17,41 @@ import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
-import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'dart:async';
 
 void main() {
-  //runApp(MyApp());
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => RepeatChecker()),
-      ChangeNotifierProvider(create: (_) => NoticeChecker()),
-      ChangeNotifierProvider(create: (_) => ColorChecker()),
-    ],
-    child:MyApp(),
-  )
-  );
-
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.getInstance().then((prefs) {
+    var themeKey = prefs.getString("theme_key") ?? "themeBlueLight";
+    runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeNotifier(themeKey)),
+            ChangeNotifierProvider(create: (_) => RepeatChecker()),
+            ChangeNotifierProvider(create: (_) => NoticeChecker()),
+            ChangeNotifierProvider(create: (_) => ColorChecker()),
+          ],
+          child:MyApp(),
+        )
+    );
+  });
 }
 
 class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-//    WidgetsBinding.instance.addPostFrameCallback((_) { _judgeAuth(context); });
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
       title: 'schedule_app',
-      theme: ThemeData(
-        primaryColor: Colors.blue,
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: themeNotifier.getTheme(),
+//      theme: ThemeData(
+//        primaryColor: Colors.blue,
+//        primarySwatch: Colors.blue,
+//        visualDensity: VisualDensity.adaptivePlatformDensity,
+//      ),
 //      home: MyHomePage(title: '2020年'),
         home: SplashScreen(),
     );
@@ -111,6 +116,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ExtensionDrawer()
       ),
       appBar: AppBar(
+//        backgroundColor: getPrimaryColor(context),
         centerTitle: true,
         title: Text(currentDate),
         actions: <Widget>[
