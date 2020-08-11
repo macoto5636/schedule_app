@@ -24,7 +24,7 @@ import 'dart:async';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.getInstance().then((prefs) {
-    var themeKey = prefs.getString("theme_key") ?? "themeBlueLight";
+    var themeKey = prefs.getString("theme_key") ?? "themeLightBlue";
     runApp(
         MultiProvider(
           providers: [

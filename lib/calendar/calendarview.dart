@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/app_theme.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
@@ -633,11 +634,11 @@ class _CalendarState extends State<CalendarView>{
           children: <Widget>[
             date==_currentDate ?
               Container(
-                height: 16,
-                width: 16,
+                height: 18,
+                width: 18,
                 decoration: new BoxDecoration(
                   shape: BoxShape.circle,
-                  color: defaultBorderColor,
+                  color: getPrimaryColor(context),
                 ),
                 child: Text(date.day.toString() , style: defaultTodayTextStyle, textAlign: TextAlign.center,),
               ):
@@ -766,7 +767,7 @@ class _CalendarState extends State<CalendarView>{
     //設定値（週の開始曜日）を取得
     SharedPreferences pref = await SharedPreferences.getInstance();
     setState(() {
-      weekStart = pref.getInt(_startDayKey);
+      weekStart = pref.getInt(_startDayKey) ?? 1;
     });
     print("weekStart : $weekStart");
     _currentDate = DateTime.now();

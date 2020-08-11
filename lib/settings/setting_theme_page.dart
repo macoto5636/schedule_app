@@ -55,7 +55,7 @@ class _SettingThemeChangePageState extends State<SettingThemeChangePage> {
 
   Future<String> _getThemeKey() async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _themeKey = prefs.getString("theme_key") ?? "themeBlueLight";
+    _themeKey = prefs.getString("theme_key") ?? "themeLightBlue";
     return _themeKey;
   }
 
