@@ -66,14 +66,6 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   String _headerText = "";
 
-  //その日の予定
-//  List<int> _schedulesId = [];
-//  List<String> _schedulesTitle = [];
-//  List<bool> _schedulesAllDay = [];
-//  List<DateTime> _schedulesStartDate = [];
-//  List<DateTime> _schedulesEndDate = [];
-//  List<Color> _schedulesColor = [];
-
   List<Schedules> _schedules = [];
 
   ScrollController _scrollController;
@@ -168,16 +160,6 @@ class _TimeTableViewState extends State<TimeTableView>{
             return Color(int.parse(value['color']));
           }).toList();
 
-//          for (int i = 0; i < schedulesId.length; i++) {
-//            _schedules.add(Schedules(
-//                schedulesId[i],
-//                schedulesTitle[i],
-//                schedulesAllDay[i],
-//                schedulesStartDate[i],
-//                schedulesEndDate[i],
-//                schedulesColor[i],
-//                0));
-//          }
 
           //スケジュールが日を跨ぐかどうかで分けてる
           //日を跨ぐ場合 → 日を跨ぐ分、リストに追加
