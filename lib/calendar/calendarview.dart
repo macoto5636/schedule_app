@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:scheduleapp/app_theme.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -397,87 +398,140 @@ class _CalendarState extends State<CalendarView>{
   //予定
   List<Widget> _buildEvent(){
     List<Widget> widgets = [];
+
     for(int i=0; i<_schedules.length; i++){
-      if(_selectDate == getDateShaping(_schedules[i].startDate)){
-        Widget widget =
-        GestureDetector(
+
+      //scheduleのstartDateからendDate取得  もっといい方法ないのか.com
+      List<DateTime> schedulesDate = [];
+      List<DateTime> schedulesEndDate = [];
+      schedulesDate.add(_schedules[i].startDate);
+
+      if(getDateShaping(_schedules[i].startDate) == getDateShaping(_schedules[i].endDate)){
+        schedulesEndDate.add(_schedules[i].endDate);
+      }else{
+        schedulesEndDate.add(DateTime(_schedules[i].startDate.year, _schedules[i].startDate.hour, _schedules[i].startDate.day, 23, 59));
+      }
+
+      int flag = 0;
+      DateTime tempDate = getDateShaping(_schedules[i].startDate);
+      while (flag == 0) {
+        if (tempDate != getDateShaping(_schedules[i].endDate)) {
+          tempDate = DateTime(tempDate.year, tempDate.month, tempDate.day + 1);
+          schedulesDate.add(tempDate);
+
+          if(tempDate == getDateShaping(_schedules[i].endDate)){
+            schedulesEndDate.add(_schedules[i].endDate);
+          }else{
+            schedulesEndDate.add(DateTime(tempDate.year, tempDate.month, tempDate.day, 23, 59));
+          }
+        } else {
+          flag = 1;
+        }
+      }
+
+      for(int j=0; j < schedulesDate.length; j++) {
+        if (_selectDate == getDateShaping(schedulesDate[j])) {
+          Widget widget =
+          GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap:(){
-              if(_schedules[i].typeId == 0) {
+            onTap: () {
+              if (_schedules[i].typeId == 0) {
                 moveScheduleDetailPage(context, _schedules[i].id);
-              }else if(_schedules[i].typeId == 1){
-                String date = _schedules[i].startDate.year.toString() + "-" + _schedules[i].startDate.month.toString().padLeft(2, '0') + "-" + _schedules[i].startDate.day.toString().padLeft(2, '0');
+              } else if (_schedules[i].typeId == 1) {
+                String date = _schedules[i].startDate.year.toString() + "-" +
+                    _schedules[i].startDate.month.toString().padLeft(2, '0') +
+                    "-" +
+                    _schedules[i].startDate.day.toString().padLeft(2, '0');
                 final diaryData = {
-                  "id" : _schedules[i].id,
-                  "article" : _schedules[i].title,
-                  "date" : date,
+                  "id": _schedules[i].id,
+                  "article": _schedules[i].title,
+                  "date": date,
                 };
                 moveDiaryDetailPage(context, diaryData);
               }
-              },
-          child:Padding(
-            padding: EdgeInsets.all(1.0),
-          child:Container(
-            width: 500,
-            child:Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.all(10.0),
-                  child: Column(
-                      children: [
-                        if(_schedules[i].allDay)
-                          Text("\n 終日 \n", style: defaultDialogTextStyle,),
-                        if(!_schedules[i].allDay)
-                          Text(_schedules[i].startDate.hour.toString().padLeft(2, '0') + ":" + _schedules[i].startDate.minute.toString().padLeft(2, '0') + "\n ｜"
-                              + "\n" + _schedules[i].endDate.hour.toString().padLeft(2, '0') + ":" + _schedules[i].endDate.minute.toString().padLeft(2, '0'), style: defaultDialogTextStyle,),
-                      ],
-                    )
-                ),
-                Container(
-                  height: 50,
-                  padding: EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      left: BorderSide(
-                        width: 5,
-                        color: _schedules[i].color,
+            },
+            child: Padding(
+              padding: EdgeInsets.all(1.0),
+              child: Container(
+                  width: 500,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: <Widget>[
+                      Container(
+                          padding: EdgeInsets.all(10.0),
+                          child: Column(
+                            children: [
+                              if(_schedules[i].allDay)
+                                Text("\n 終日 \n",
+                                  style: defaultDialogTextStyle,),
+                              if(!_schedules[i].allDay)
+                                Text(schedulesDate[j].hour.toString()
+                                    .padLeft(2, '0') + ":" +
+                                    schedulesDate[j].minute.toString()
+                                        .padLeft(2, '0') + "\n ｜"
+                                    + "\n" +
+                                    schedulesEndDate[j].hour.toString()
+                                        .padLeft(
+                                        2, '0') + ":" +
+                                    schedulesEndDate[j].minute.toString()
+                                        .padLeft(2, '0'),
+                                  style: defaultDialogTextStyle,),
+                            ],
+                          )
                       ),
-                    ),
-                  ),
-                ),
-                if(_schedules[i].typeId == 0)
-                  Expanded(
-                    child: Container(
-                      child: Text(_schedules[i].title, style:defaultDialogTextStyle, overflow: TextOverflow.ellipsis,maxLines: 1,textAlign: TextAlign.left,),
-                    ),
-                  ),
-                if(_schedules[i].typeId == 1)
-                  Expanded(
-                    child: Container(
-                        child: Row(
-                          children: [
-                            //なぜかRichTextだと思う通りにいかず、ネスト地獄になった
-                            Padding(
-                              padding: EdgeInsets.only(right : 5.0),
-                              child: Icon(Icons.import_contacts, size: 20.0,),
+                      Container(
+                        height: 50,
+                        padding: EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(
+                              width: 5,
+                              color: _schedules[i].color,
                             ),
-                            Expanded(
-                              child:Container(
-                                  child:Text(_schedules[i].title, style: defaultDialogTextStyle, overflow: TextOverflow.ellipsis,maxLines: 1,)
-                              ),
-                            ),
-                          ],
+                          ),
+                        ),
+                      ),
+                      if(_schedules[i].typeId == 0)
+                        Expanded(
+                          child: Container(
+                            child: Text(
+                              _schedules[i].title,
+                              style: defaultDialogTextStyle,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.left,),
+                          ),
+                        ),
+                      if(_schedules[i].typeId == 1)
+                        Expanded(
+                          child: Container(
+                              child: Row(
+                                children: [
+                                  //なぜかRichTextだと思う通りにいかず、ネスト地獄になった
+                                  Padding(
+                                    padding: EdgeInsets.only(right: 5.0),
+                                    child: Icon(
+                                      Icons.import_contacts, size: 20.0,),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                        child: Text(_schedules[i].title,
+                                          style: defaultDialogTextStyle,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,)
+                                    ),
+                                  ),
+                                ],
+                              )
+                          ),
                         )
-                    ),
+                    ],
                   )
-              ],
-            )
-          ),
-          ),
-    );
-
-        widgets.add(widget);
+              ),
+            ),
+          );
+          widgets.add(widget);
+        }
       }
     }
 
@@ -526,6 +580,9 @@ class _CalendarState extends State<CalendarView>{
   //月切り替わったときの処理
   void onPageChanged(pageId){
     print("pageId:" + pageId.toString());
+    for(int i=0; i < _dates.length; i++){
+      print(i.toString() + ":" + _dates[i].toString());
+    }
 
     if(pageId == _dates.length -1){
       DateTime tempDate = getDateTime(_dates.length-1, 10);
@@ -598,7 +655,7 @@ class _CalendarState extends State<CalendarView>{
             height: (size.height - 170) / row,
             child: _buildCell(date),
             decoration: BoxDecoration(
-              border: Border.all(width: 2, color: defaultBorderColor),
+              border: Border.all(width: 2, color: Theme.of(context).primaryColor),
               color: date == _currentDate ? defaultTodayBackgroundColor : null,
             ),
           )
@@ -644,51 +701,71 @@ class _CalendarState extends State<CalendarView>{
           ],
         )
       );
-    }
+  }
 
   //その日の予定
   List<Widget> _buildSchedule(DateTime date){
     List<Widget> widgets = [];
-    for(int i=0; i<_schedules.length; i++){
-      if(date == getDateShaping(_schedules[i].startDate)){
-        Widget widget =
+    for(int i=0; i<_schedules.length; i++) {
+
+      //scheduleのstartDateからendDate取得  もっといい方法ないのか.com
+      List<DateTime> schedulesDate = [];
+      schedulesDate.add(getDateShaping(_schedules[i].startDate));
+
+      int flag = 0;
+      DateTime tempDate = getDateShaping(_schedules[i].startDate);
+      while (flag == 0) {
+        if (tempDate != getDateShaping(_schedules[i].endDate)) {
+          tempDate = DateTime(tempDate.year, tempDate.month, tempDate.day + 1);
+          schedulesDate.add(tempDate);
+        } else {
+          flag = 1;
+        }
+      }
+
+      for (int j = 0; j < schedulesDate.length; j++) {
+        if (date == schedulesDate[j]) {
+          Widget widget =
           Padding(
               padding: EdgeInsets.all(1.0),
-            child:
-            Container(
-              width: 300,
-              color: _schedules[i].color,
-              child: RichText(
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: defaultScheduleTextStyle,
-                  children: [
-                    if(_schedules[i].typeId == 0)
-                      TextSpan(
-                        text: _schedules[i].title,
-                      ),
-                    if(_schedules[i].typeId == 1)
-                      TextSpan(
-                        children: [
-                          WidgetSpan(
-                            child: Padding(
-                              padding: EdgeInsets.only(right: 5.0),
-                              child: Icon(Icons.import_contacts, size: 11.0, color: Colors.white,),
-                            )
-                          ),
+              child:
+              Container(
+                width: 300,
+                color: _schedules[i].color,
+                child: RichText(
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                      style: defaultScheduleTextStyle,
+                      children: [
+                        if(_schedules[i].typeId == 0)
                           TextSpan(
-                            text: "日記",
+                            text: _schedules[i].title,
+                          ),
+                        if(_schedules[i].typeId == 1)
+                          TextSpan(
+                              children: [
+                                WidgetSpan(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: 5.0),
+                                      child: Icon(
+                                        Icons.import_contacts, size: 11.0,
+                                        color: Colors.white,),
+                                    )
+                                ),
+                                TextSpan(
+                                  text: "日記",
+                                )
+                              ]
                           )
-                        ]
-                      )
-                  ]
+                      ]
+                  ),
                 ),
-              ),
-            )
+              )
           );
-        widgets.add(widget);
+          widgets.add(widget);
+        }
       }
     }
     return widgets;

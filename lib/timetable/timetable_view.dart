@@ -66,14 +66,6 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   String _headerText = "";
 
-  //その日の予定
-  List<int> _schedulesId = [];
-  List<String> _schedulesTitle = [];
-  List<bool> _schedulesAllDay = [];
-  List<DateTime> _schedulesStartDate = [];
-  List<DateTime> _schedulesEndDate = [];
-  List<Color> _schedulesColor = [];
-
   List<Schedules> _schedules = [];
 
   ScrollController _scrollController;
@@ -116,6 +108,14 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   //現在の日付の予定取得
   void _getSchedules() async{
+    List<int> schedulesId = [];
+    List<String> schedulesTitle = [];
+    List<bool> schedulesAllDay = [];
+    List<DateTime> schedulesStartDate = [];
+    List<DateTime> schedulesEndDate = [];
+    List<Color> schedulesColor = [];
+    List<int> schedulesTypeId = [];
+
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
 
@@ -127,17 +127,17 @@ class _TimeTableViewState extends State<TimeTableView>{
       if(mounted) {
         setState(() {
           //id取得
-          _schedulesId = list.map<int>((value) {
+          schedulesId = list.map<int>((value) {
             return value['id'];
           }).toList();
 
           //タイトル取得
-          _schedulesTitle = list.map<String>((value) {
+          schedulesTitle = list.map<String>((value) {
             return value['title'];
           }).toList();
 
           //all dayか否か
-          _schedulesAllDay = list.map<bool>((value) {
+          schedulesAllDay = list.map<bool>((value) {
             if (value['all_day'] == 0) {
               return false;
             } else {
@@ -146,31 +146,73 @@ class _TimeTableViewState extends State<TimeTableView>{
           }).toList();
 
           //開始日時取得
-          _schedulesStartDate = list.map<DateTime>((value) {
+          schedulesStartDate = list.map<DateTime>((value) {
             return DateTime.parse(value['start_date']);
           }).toList();
 
           //終了日時取得
-          _schedulesEndDate = list.map<DateTime>((value) {
+          schedulesEndDate = list.map<DateTime>((value) {
             return DateTime.parse(value['end_date']);
           }).toList();
 
           //色の取得
-          _schedulesColor = list.map<Color>((value) {
+          schedulesColor = list.map<Color>((value) {
             return Color(int.parse(value['color']));
           }).toList();
 
-          for (int i = 0; i < _schedulesId.length; i++) {
-            _schedules.add(Schedules(
-                _schedulesId[i],
-                _schedulesTitle[i],
-                _schedulesAllDay[i],
-                _schedulesStartDate[i],
-                _schedulesEndDate[i],
-                _schedulesColor[i],
-                0));
+
+          //スケジュールが日を跨ぐかどうかで分けてる
+          //日を跨ぐ場合 → 日を跨ぐ分、リストに追加
+          //日を跨がない場合 → そのままリストに追加
+          for(int i=0; i<schedulesId.length; i++){
+            if(getDateShaping(schedulesStartDate[i]) == getDateShaping(schedulesEndDate[i])){
+              _schedules.add(Schedules(
+                  schedulesId[i],
+                  schedulesTitle[i],
+                  schedulesAllDay[i],
+                  schedulesStartDate[i],
+                  schedulesEndDate[i],
+                  schedulesColor[i],
+                  0
+              ));
+            }else{
+              int flag = 0;
+              DateTime temp = schedulesStartDate[i];
+              //予定終了日まで繰り返す
+              while(flag == 0){
+                if(getDateShaping(temp) == getDateShaping(schedulesEndDate[i])){
+                  _schedules.add(Schedules(
+                      schedulesId[i],
+                      schedulesTitle[i],
+                      schedulesAllDay[i],
+                      temp,
+                      schedulesEndDate[i],
+                      schedulesColor[i],
+                      0,
+                    )
+                  );
+                  flag = 1;
+                }else{
+                  _schedules.add(Schedules(
+                      schedulesId[i],
+                      schedulesTitle[i],
+                      schedulesAllDay[i],
+                      temp,
+                      DateTime(temp.year, temp.month, temp.day, 23, 59),
+                      schedulesColor[i],
+                      0,
+                    )
+                  );
+                  temp = DateTime(temp.year, temp.month, temp.day + 1);
+                }
+              }
+            }
           }
           getPlugin();
+
+          for(int i=0; i<_schedules.length; i++){
+            print("id:" + _schedules[i].id.toString() + " title:" + _schedules[i].title + " startDate:" + _schedules[i].startDate.toString());
+          }
         });
       }
       });
@@ -364,11 +406,12 @@ class _TimeTableViewState extends State<TimeTableView>{
   Widget _buildSingleChildScrollView(DateTime date){
     List<Schedules> scheduleListNotAllDay = [];
     List<Schedules> scheduleListAllDay = [];
+
     for(int i=0; i < _schedules.length; i++){
-      if(getDateShaping(_schedules[i].startDate) == getDateShaping(date)){
-        if(_schedules[i].allDay){
+      if(getDateShaping(_schedules[i].startDate) == getDateShaping(date)) {
+        if (_schedules[i].allDay) {
           scheduleListAllDay.add(_schedules[i]);
-        }else{
+        } else {
           scheduleListNotAllDay.add(_schedules[i]);
         }
       }

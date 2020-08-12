@@ -44,12 +44,12 @@ const Color defaultBorderColor = Colors.blue;
 //ダイアログ部分
 const TextStyle defaultDialogTitleTextStyle = const TextStyle(
   fontSize: 20.0,
-  color: Colors.black,
+  //color: Colors.black,
 );
 
 const TextStyle defaultDialogTextStyle = const TextStyle(
   fontSize: 14.0,
-  color: Colors.black,
+  //color: Colors.black,
 );
 
-const Color defaultDividerColor = Colors.black;
+const Color defaultDividerColor = Colors.grey;

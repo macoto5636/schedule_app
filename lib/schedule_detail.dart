@@ -163,7 +163,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         Padding(
           padding: EdgeInsets.all(10.0),
           child: Divider(
-            color: Colors.black,
+            color: Colors.grey,
             height:  20,
           ),
         ),
@@ -229,8 +229,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
           Padding(
             padding: EdgeInsets.all(10.0),
             child: Divider(
-              color: Colors.black,
-              height:  20,
+              color: Colors.grey,
             ),
           ),
           Column(
