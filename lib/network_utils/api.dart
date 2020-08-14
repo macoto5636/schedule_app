@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -11,6 +12,17 @@ class Network{
   Future<void> _getToken() async {
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     token = jsonDecode(localStorage.getString('token'))['token'];
+  }
+
+  String getUrl(route){
+    return _url + route;
+  }
+
+  get getMultiHeaders => _multiHeaders();
+
+  String imagesDirectory(selectImageDirectory){
+    var url = 'http://10.0.2.2:8000/storage/' + selectImageDirectory + '/';
+    return url;
   }
 
   //認証用
@@ -44,10 +56,38 @@ class Network{
     );
   }
 
+  //POST（画像とデータ送信）
+  postUploadImage(data,File file,apiUrl) async{
+    var fullUrl = _url + apiUrl;
+    await _getToken();
+    print("---------file----------");
+    print(file);
+    print("---------data----------");
+    print(data);
+
+    var request = http.MultipartRequest('POST', Uri.parse(fullUrl));
+    request.fields['data'] = jsonEncode(data);
+    var pic = await http.MultipartFile.fromPath("image", file.path);
+    request.files.add(pic);
+    request.headers.addAll(_setHeaders());
+    print("--------request---------");
+    print(request);
+    var response = await request.send();
+    if (response.statusCode == 200) print('Uploaded!');
+    print(response.statusCode);
+  }
+
+
   _setHeaders() => {
     'Content-type' : 'application/json',
     'Accept' : 'application/json',
     'Authorization' : 'Bearer $token'
   };
+
+  _multiHeaders() => {
+    'Accept' : 'application/json',
+    'Authorization' : 'Bearer $token'
+  };
+
 
 }

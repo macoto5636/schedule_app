@@ -34,11 +34,30 @@ class DiaryDetailPage extends StatelessWidget {
           )
         ],
       ),
-      body: Container(
-        padding: EdgeInsets.all(16),
-        child: Text(
-          diaryData["article"],
-          style: TextStyle(fontSize: 25),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      diaryData["article"],
+                      style: TextStyle(fontSize: 25),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Container(
+                padding: EdgeInsets.all(15),
+                child: diaryData["image_path"] != null
+                        ? Image.network(Network().imagesDirectory('diary_images') + diaryData["image_path"])
+                        : Container(),
+            )
+          ],
         ),
       ),
     );
