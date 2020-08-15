@@ -19,7 +19,8 @@ class DiaryMainPage extends StatefulWidget {
 
 class _DiaryMainPageState extends State<DiaryMainPage> {
   final SlidableController slidableController = SlidableController();
-  var resultList;
+  List resultList;
+  var diaryList;
 
 //  日記テーブルの内容の変更を検知するフラグ
   var _rebuildFlag;
@@ -31,6 +32,7 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
     http.Response res = await Network().getData("diary/get/$calendarId");
+    diaryList = jsonDecode(res.body);
 
     return jsonDecode(res.body);
   }
@@ -76,6 +78,7 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
               return ListView.builder(
                   itemCount: _diaryList.length,
                   itemBuilder: (BuildContext context, int index) {
+                    print("_diaryList.length : ${diaryList.length}");
                     //改行している場合に１行目を取得している
                     var _article = _diaryList[index]["article"].toString().split('\n')[0];
 
@@ -143,14 +146,44 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
 
 //  日記の追加画面に移動する
 //  追加後、日記のメインページをビルドする
-  void _returnValueFromDiaryAddPage(BuildContext context) async{
-    final result = await Navigator.push(
+  void _returnValueFromDiaryAddPage(BuildContext context){
+    //今日の日付の日記が存在するか確認して、追加と編集に分岐する
+    var today = DateFormat("yyyy-MM-dd").format(DateTime.now());
+    bool flag = false;
+    var editDiaryItem;
+
+    bool judge(diary){
+      print("diary[date] : ${diary["date"]}");
+      print("today : ${today}");
+      if(diary["date"] == today){
+        flag = true;
+        editDiaryItem = diary;
+        return true;
+      }
+      return false;
+    }
+
+    for(int i = 0;i < diaryList.length;i++){
+      if(judge(diaryList[i])){
+        break;
+      }
+    }
+
+    if(flag){
+      Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DiaryAddPage(),
+          builder: (context) => DiaryEditPage(diaryItem: editDiaryItem,callback: callback,)
         )
-    );
-    callback(true);
+      );
+    }else{
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DiaryAddPage(diaryData: diaryList,callback: callback),
+        )
+      );
+    }
   }
 
 //  日記の内容ページへ移動する
