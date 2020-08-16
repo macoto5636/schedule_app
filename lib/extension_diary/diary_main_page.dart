@@ -59,7 +59,6 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
           IconButton(
             icon: Icon(Icons.add),
             onPressed: (){
-//              _returnValueFromDiaryAddPage(context);
               branchToEditAdd();
             },
           )

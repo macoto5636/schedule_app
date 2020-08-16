@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scheduleapp/app_theme.dart';
+import 'package:scheduleapp/extension_diary/diary_main_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
@@ -34,14 +35,16 @@ class Schedules{
   //スケジュールか拡張機能か識別するためのID
   //(0:Schedule, 1:diary)
   int typeId;
+  int index;
 
-  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId);
+  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId,this.index);
 }
 
 class CalendarView extends StatefulWidget{
   //String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
   Function(String) setCurrentDate;
-  CalendarView(this.setCurrentDate);
+  Function callback;
+  CalendarView(this.setCurrentDate,this.callback);
 
   @override
   _CalendarState createState() => new _CalendarState();
@@ -67,6 +70,7 @@ class _CalendarState extends State<CalendarView>{
   int currentMonthPage = 1; //今月のページ
 
   List<Schedules> _schedules = [];
+  List diaryList;
 
   //  日記テーブルの内容の変更を検知するフラグ
   var _rebuildFlag;
@@ -153,7 +157,9 @@ class _CalendarState extends State<CalendarView>{
                 schedulesStartDate[i],
                 schedulesEndDate[i],
                 schedulesColor[i],
-                0));
+                0,
+                i
+            ));
           }
 
           getPlugin();
@@ -192,17 +198,17 @@ class _CalendarState extends State<CalendarView>{
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
     http.Response response = await Network().getData("diary/get/$calendarId");
-    List list = json.decode(response.body);
+    diaryList = json.decode(response.body);
 
-    List<int> diaryId = list.map<int>((value){
+    List<int> diaryId = diaryList.map<int>((value){
       return value['id'];
     }).toList();
 
-    List<String> diaryArticle = list.map<String>((value){
+    List<String> diaryArticle = diaryList.map<String>((value){
       return value['article'];
     }).toList();
 
-    List<DateTime> diaryDate = list.map<DateTime>((value){
+    List<DateTime> diaryDate = diaryList.map<DateTime>((value){
       return DateTime.parse(value['date']);
     }).toList();
 
@@ -216,7 +222,9 @@ class _CalendarState extends State<CalendarView>{
               diaryDate[i],
               diaryDate[i],
               diaryColor,
-              1));
+              1,
+              i
+          ));
         }
       });
     }
@@ -447,7 +455,7 @@ class _CalendarState extends State<CalendarView>{
                   "article": _schedules[i].title,
                   "date": date,
                 };
-                moveDiaryDetailPage(context, diaryData);
+                moveDiaryDetailPage(context,_schedules[i].index);
               }
             },
             child: Padding(
@@ -563,13 +571,21 @@ class _CalendarState extends State<CalendarView>{
   }
 
   //日記詳細
-  moveDiaryDetailPage(BuildContext context, data){
+  moveDiaryDetailPage(BuildContext context,index) async{
     Navigator.of(context).pop();
     Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => DiaryDetailPage(diaryData: data,callback: callback),
+            builder: (context) {
+              return DiaryMainPage();
+            }
         )
     );
+    await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DiaryDetailPage(diaryData: diaryList,callback: callback,editIndex: index,),
+        )
+    );
+    widget.callback();
   }
 
   //今月の位置に戻るボタン押したとき
