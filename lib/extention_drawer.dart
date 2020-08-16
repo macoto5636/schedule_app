@@ -115,9 +115,11 @@ class ExtensionListView extends StatefulWidget {
 
 class _ExtensionListViewState extends State<ExtensionListView> {
   List extensions;
+  List haveExtensions = [];
   var token;
   var calendarId;
-  bool extensionFlag = true;
+  //bool extensionFlag = true;
+  bool extensionFlag = false;
 
   @override
   void initState() {
@@ -135,11 +137,24 @@ class _ExtensionListViewState extends State<ExtensionListView> {
 
     extensions = jsonDecode(res.body);
 
+//    extensions.forEach((element) {
+//      if(!element["flag"]){
+//        extensionFlag = false;
+//      }
+//    });
+    haveExtensions.clear();
+
     extensions.forEach((element) {
-      if(!element["flag"]){
-        extensionFlag = false;
+      if(element["flag"] || !extensionFlag){
+        extensionFlag = true;
+      }
+
+      if(element["flag"]){
+        haveExtensions.add(element);
       }
     });
+
+    print(haveExtensions);
 
     return extensionFlag;
   }
@@ -153,7 +168,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
           if (snapshot.hasData) {
             if(snapshot.data){
               //現在のカレンダーに拡張機能が一つでも入っている場合の表示
-              return extensions == null ? Container() : Container(
+              return haveExtensions == null ? Container() : Container(
                 child: ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
@@ -167,7 +182,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                         ),
                         child: ListTile(
                           title: Text(
-                            extensions[index]["ex_name"],
+                            haveExtensions[index]["ex_name"],
                             style: TextStyle(fontSize: 20),
                           ),
                           trailing: Icon(Icons.arrow_forward_ios),
@@ -177,7 +192,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                         ),
                       );
                     },
-                    itemCount: extensions.length,
+                    itemCount: haveExtensions.length,
                 ),
               );
             }else{
@@ -257,7 +272,9 @@ void moveExtensionSubPages(BuildContext context,int id,callback) async{
           return DiaryMainPage();
         },
       )
-    ); callback();
+    );
+      callback(); break;
+    case 2 : {}
   }
 }
 
