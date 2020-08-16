@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/auth/login.dart';
-import 'main.dart' as main;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,9 +12,6 @@ import 'extension_diary/diary_main_page.dart';
 import 'network_utils/api.dart';
 
 class ExtensionDrawer extends StatefulWidget {
-  ExtensionDrawer({Key key,this.callback}) : super(key: key);
-  Function callback;
-//  ExtensionDrawer({ this.callback });
   @override
   _ExtensionDrawerState createState() => _ExtensionDrawerState();
 }
@@ -74,7 +70,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
           padding: EdgeInsets.only(left: 10,bottom: 5),
           child: Text('$name  さん',style: TextStyle(fontSize: 20),),
         ),
-        ExtensionListView(callback: widget.callback,),
+        ExtensionListView(),
         authButton(),
       ],
     );
@@ -109,8 +105,6 @@ _getPrefItems() async {
 
 //drawerの中身
 class ExtensionListView extends StatefulWidget {
-  Function callback;
-  ExtensionListView({ this.callback });
   @override
   _ExtensionListViewState createState() => _ExtensionListViewState();
 }
@@ -174,7 +168,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                           ),
                           trailing: Icon(Icons.arrow_forward_ios),
                           onTap: (){
-                            moveExtensionSubPages(context,extensions[index]["id"],widget.callback);
+                            moveExtensionSubPages(context,extensions[index]["id"]);
                           },
                         ),
                       );
@@ -251,18 +245,15 @@ moveLoginForm(BuildContext context){
 }
 
 //拡張機能のページ（機能ページ）へ移動
-void moveExtensionSubPages(BuildContext context,int id,callback) async{
+void moveExtensionSubPages(BuildContext context,int id){
   switch(id){
-    //拡張機能ID：1　日記
-    case 1 :
-      await Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (context) {
-                return DiaryMainPage();
-              }
-          )
-      );
-      callback();
+    case 1 : Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context){
+          return DiaryMainPage();
+        },
+      )
+    );
   }
 }
 

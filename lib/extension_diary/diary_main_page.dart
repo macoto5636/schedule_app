@@ -225,7 +225,7 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
 //　スライドアクション[削除]で日記の削除する（確認ダイアログなし）
 //  削除処理後に、日記のメインページをビルドする
   _deleteDiaryItem(int diaryId) async{
-    var result = await Network().getData("diary/delete/$diaryId");
+    await Network().getData("diary/delete/$diaryId");
     callback(true);
   }
 

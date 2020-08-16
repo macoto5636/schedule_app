@@ -77,7 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _page = 1;
 
 
-  callback(){
+  callback(bool status){
     setState(() {
       if(_page == 1){
         _page = 2;
@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: Drawer(
         //拡張機能一覧
-          child: ExtensionDrawer(callback: callback,)
+          child: ExtensionDrawer()
       ),
       appBar: AppBar(
 //        backgroundColor: getPrimaryColor(context),
@@ -160,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         }
                       )
                   );
-                  callback();
+                  callback(true);
                   print("aaaaa");
                 }
             )
