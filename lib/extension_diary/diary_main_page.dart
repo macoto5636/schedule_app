@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:scheduleapp/extension_diary/diary_add_page.dart';
+import 'package:scheduleapp/extension_diary/diary_add_edit_page.dart';
 import 'package:scheduleapp/extension_diary/diary_detail_page.dart';
 import 'package:scheduleapp/network_utils/api.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'diary_edit_page.dart';
 
 class DiaryMainPage extends StatefulWidget {
   @override
@@ -61,7 +59,8 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
           IconButton(
             icon: Icon(Icons.add),
             onPressed: (){
-              _returnValueFromDiaryAddPage(context);
+//              _returnValueFromDiaryAddPage(context);
+              branchToEditAdd();
             },
           )
         ],
@@ -75,10 +74,12 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
               if(_diaryList.length == 0){
                 return Center(child: Text("日記が存在しません"));
               }
+              var temp = _diaryList[0]["date"].toString().substring(0,7);//yyyy-MM
+              var flag = true;
               return ListView.builder(
                   itemCount: _diaryList.length,
                   itemBuilder: (BuildContext context, int index) {
-                    print("_diaryList.length : ${diaryList.length}");
+
                     //改行している場合に１行目を取得している
                     var _article = _diaryList[index]["article"].toString().split('\n')[0];
 
@@ -86,52 +87,83 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
                     if(_article.length >= 15){
                       _article = _article.substring(0,15) + "...";
                     }
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: Colors.grey),
-                        ),
-                      ),
-                      child: Slidable(
-                        key: Key(index.toString()),
-                        actionPane: SlidableDrawerActionPane(),
-                        actionExtentRatio: 0.175,
-                        controller: slidableController,
-                        child: ListTile(
-                          leading: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                _diaryList[index]["date"],
-                                style: TextStyle(fontSize: 17.0,fontWeight: FontWeight.bold),
+                    if(index != 0){
+                      if(temp != _diaryList[index]["date"].toString().substring(0,7)){
+                        flag = true;
+                        temp = _diaryList[index]["date"].toString().substring(0,7);
+                      }else{
+                        flag = false;
+                      }
+                    }
+                    print(temp);
+                    print("flag : $flag");
+                    return Column(
+                      children: <Widget>[
+                        flag ? Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: Container(
+                                color: Colors.grey.withOpacity(0.5),
+//                                decoration: BoxDecoration(
+//                                  border: Border(
+//                                    bottom: BorderSide(color: Colors.grey),
+//                                  ),
+//                                ),
+                                padding: EdgeInsets.only(left: 16,top: 4,bottom: 4),
+                                child: Text(temp),
                               ),
+                            )
+                          ],
+                        ) : Container(),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                            ),
+                          ),
+                          child: Slidable(
+                            key: Key(index.toString()),
+                            actionPane: SlidableDrawerActionPane(),
+                            actionExtentRatio: 0.175,
+                            controller: slidableController,
+                            child: ListTile(
+                              leading: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(
+                                    _diaryList[index]["date"],
+                                    style: TextStyle(fontSize: 17.0,fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              title: Text(
+                                _article,
+                                style: TextStyle(fontSize: 17.0),
+                              ),
+                              onTap: (){
+                                _moveDiaryDetailPage(context,index);
+                              },
+                            ),
+                            secondaryActions: <Widget>[
+                              IconSlideAction(
+                              caption: '編集',
+                              icon: Icons.edit,
+                              color: Colors.grey,
+                              onTap: (){
+                                _moveDiaryEditPage(context, index);
+                              },
+                              ),
+                              IconSlideAction(
+                                caption: '削除',
+                                icon: Icons.delete_forever,
+                                color: Colors.red,
+                                onTap: (){ _deleteDiaryItem(_diaryList[index]["id"]); },
+                                )
                             ],
                           ),
-                          title: Text(
-                              _article,
-                              style: TextStyle(fontSize: 17.0),
-                          ),
-                          onTap: (){
-                            _moveDiaryDetailPage(context,_diaryList[index]);
-                          },
                         ),
-                        secondaryActions: <Widget>[
-                          IconSlideAction(
-                            caption: '編集',
-                            icon: Icons.edit,
-                            color: Colors.grey,
-                            onTap: (){
-                              _moveDiaryEditPage(context, _diaryList[index]);
-                            },
-                          ),
-                          IconSlideAction(
-                            caption: '削除',
-                            icon: Icons.delete_forever,
-                            color: Colors.red,
-                            onTap: (){ _deleteDiaryItem(_diaryList[index]["id"]); },
-                          )
-                        ],
-                      ),
+                      ],
                     );
                   }
               );
@@ -144,20 +176,17 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
     );
   }
 
-//  日記の追加画面に移動する
-//  追加後、日記のメインページをビルドする
-  void _returnValueFromDiaryAddPage(BuildContext context){
-    //今日の日付の日記が存在するか確認して、追加と編集に分岐する
+
+//  現在日の日記を追加する
+//  すでに存在する場合は編集ページに飛ぶ
+  void branchToEditAdd(){
     var today = DateFormat("yyyy-MM-dd").format(DateTime.now());
-    bool flag = false;
-    var editDiaryItem;
+    bool mode = true; ////true:追加,false:編集
+    var editIndex;
 
     bool judge(diary){
-      print("diary[date] : ${diary["date"]}");
-      print("today : ${today}");
       if(diary["date"] == today){
-        flag = true;
-        editDiaryItem = diary;
+        mode = false;
         return true;
       }
       return false;
@@ -165,34 +194,31 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
 
     for(int i = 0;i < diaryList.length;i++){
       if(judge(diaryList[i])){
+        editIndex = i;
         break;
       }
     }
 
-    if(flag){
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DiaryEditPage(diaryItem: editDiaryItem,callback: callback,)
-        )
-      );
-    }else{
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DiaryAddPage(diaryData: diaryList,callback: callback),
-        )
-      );
-    }
-  }
-
-//  日記の内容ページへ移動する
-//  削除処理後、日記のメインページをビルドする
-  void _moveDiaryDetailPage(BuildContext context,data){
+    print("branch add edit");
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DiaryDetailPage(diaryData: data,callback: callback),
+            builder: (context) => DiaryAddEditPage(
+              diaryData: diaryList,
+              mode: mode,
+              editIndex: editIndex,
+              callback: callback,
+            )
+        )
+    );
+  }
+//  日記の内容ページへ移動する
+//  削除処理後、日記のメインページをビルドする
+  void _moveDiaryDetailPage(BuildContext context,index){
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DiaryDetailPage(diaryData: diaryList,callback: callback,editIndex: index,),
         )
     );
   }
@@ -200,17 +226,22 @@ class _DiaryMainPageState extends State<DiaryMainPage> {
 //　スライドアクション[削除]で日記の削除する（確認ダイアログなし）
 //  削除処理後に、日記のメインページをビルドする
   _deleteDiaryItem(int diaryId) async{
-    var result = await Network().getData("diary/delete/$diaryId");
+    await Network().getData("diary/delete/$diaryId");
     callback(true);
   }
 
 //  スライドアクション[編集]で日記の編集画面へ移動する
 //  更新処理後に、日記のメインページをビルドする
-  _moveDiaryEditPage(BuildContext context,item){
+  _moveDiaryEditPage(BuildContext context,index){
     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => DiaryEditPage(diaryItem: item,callback: callback),
+            builder: (context) => DiaryAddEditPage(
+              diaryData: diaryList,
+              mode: false,
+              editIndex: index,
+              callback: callback,
+            )
         )
     );
   }

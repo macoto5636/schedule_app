@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-import 'package:scheduleapp/extension_diary/diary_main_page.dart';
 import 'package:scheduleapp/network_utils/api.dart';
 
 class DiaryEditPage extends StatefulWidget {
@@ -19,8 +20,8 @@ class DiaryEditPage extends StatefulWidget {
 class _DiaryEditPageState extends State<DiaryEditPage> {
 
   DateTime _date;
-  final formatView = DateFormat("yyyy年MM月dd日");
-  final formatPost = DateFormat("yyyyMMdd");
+  var formatView;
+  var formatPost;
 
   var _contextController;
   String _changeBeforeArticle;
@@ -44,6 +45,12 @@ class _DiaryEditPageState extends State<DiaryEditPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    Intl.defaultLocale = 'ja_JP';
+    initializeDateFormatting('ja_JP');
+
+    formatView = DateFormat("yyyy年MM月dd日(E)");
+    formatPost = DateFormat("yyyy-MM-dd");
+
     _contextController = TextEditingController(text: widget.diaryItem["article"]);
     _changeBeforeArticle = widget.diaryItem["article"];
     _date = DateTime.parse(widget.diaryItem["date"]);
@@ -81,15 +88,20 @@ class _DiaryEditPageState extends State<DiaryEditPage> {
           children: <Widget>[
             Row(
               children: <Widget>[
-                Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Text(
-                        formatView.format(_date),
-                        style: TextStyle(fontSize: 25.0),
-                      )
-                  ),
+                Container(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Text(
+                      formatView.format(_date),
+                      style: TextStyle(fontSize: 25.0),
+                    )
                 ),
+                IconButton(
+                  icon: Icon(Icons.arrow_drop_down),
+                  iconSize: 30,
+                  onPressed: (){
+                    selectDate();
+                  },
+                )
               ],
             ),
             Container(
@@ -214,6 +226,37 @@ class _DiaryEditPageState extends State<DiaryEditPage> {
       );
     }else{
       Navigator.pop(context);
+    }
+  }
+
+  selectDate(){
+    DatePicker.showDatePicker(
+        context,
+        showTitleActions: true,
+        minTime: DateTime(2020, 1, 1),
+        maxTime: DateTime(2025, 12, 31),
+        onChanged: (date) {
+          print('change $date');
+        },
+        onConfirm: (date) {
+          setState(() {
+            this._date = date;
+          });
+          alreadyItem();
+        },
+        currentTime: DateTime.now(),
+        locale: LocaleType.jp
+    );
+  }
+
+  //既に登録されているページなら編集画面と入れ替える
+  alreadyItem(){
+    judge(diary,callback){
+      if(diary["date"] == formatPost.format((_date))){
+        Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => DiaryEditPage(diaryItem: diary,callback: callback,)
+        ));
+      }
     }
   }
 }

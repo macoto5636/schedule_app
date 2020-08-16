@@ -26,17 +26,7 @@ class _DiaryAddPageState extends State<DiaryAddPage> {
   DateTime date = DateTime.now();
   DateFormat formatView;
   DateFormat formatPost;
-
-  List<String> days = [
-    "月曜日",
-    "火曜日",
-    "水曜日",
-    "木曜日",
-    "金曜日",
-    "土曜日",
-    "日曜日"
-  ];
-
+  
   var _contextController = TextEditingController();
 
   File _image;

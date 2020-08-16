@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/extension_diary/diary_add_edit_page.dart';
 import 'package:scheduleapp/network_utils/api.dart';
-
-import 'diary_edit_page.dart';
 
 class DiaryDetailPage extends StatelessWidget {
   Function(bool) callback;
-  DiaryDetailPage({ this.diaryData,this.callback });
+  DiaryDetailPage({ this.diaryData,this.callback,this.editIndex });
   final diaryData;
+  final editIndex;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(diaryData["date"]),
+        title: Text(diaryData[editIndex]["date"]),
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.delete_forever),
             onPressed: (){
-              deleteDiaryItem(context,diaryData["id"]);
+              deleteDiaryItem(context,diaryData[editIndex]["id"]);
             },
           ),
           IconButton(
@@ -27,7 +27,12 @@ class DiaryDetailPage extends StatelessWidget {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => DiaryEditPage(diaryItem: diaryData,callback: callback,),
+                      builder: (context) => DiaryAddEditPage(
+                        diaryData: diaryData,
+                        mode: false,
+                        editIndex: editIndex,
+                        callback: callback,
+                      )
                   )
               );
             },
@@ -44,7 +49,7 @@ class DiaryDetailPage extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(16),
                     child: Text(
-                      diaryData["article"],
+                      diaryData[editIndex]["article"],
                       style: TextStyle(fontSize: 25),
                     ),
                   ),
@@ -53,8 +58,8 @@ class DiaryDetailPage extends StatelessWidget {
             ),
             Container(
                 padding: EdgeInsets.all(15),
-                child: diaryData["image_path"] != null
-                        ? Image.network(Network().imagesDirectory('diary_images') + diaryData["image_path"])
+                child: diaryData[editIndex]["image_path"] != null
+                        ? Image.network(Network().imagesDirectory('diary_images') + diaryData[editIndex]["image_path"])
                         : Container(),
             )
           ],
@@ -98,6 +103,6 @@ class DiaryDetailPage extends StatelessWidget {
   }
 
   _deleteDiaryItem(int diaryId) async{
-    var result = await Network().getData("diary/delete/$diaryId");
+    await Network().getData("diary/delete/$diaryId");
   }
 }
