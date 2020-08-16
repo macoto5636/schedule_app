@@ -67,6 +67,7 @@ class _TimeTableViewState extends State<TimeTableView>{
   String _headerText = "";
 
   List<Schedules> _schedules = [];
+  List diaryList;
 
   ScrollController _scrollController;
   PageController _pageController = PageController(initialPage: 1);
@@ -246,17 +247,17 @@ class _TimeTableViewState extends State<TimeTableView>{
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
     http.Response response = await Network().getData("diary/get/$calendarId");
-    List list = json.decode(response.body);
+    diaryList = json.decode(response.body);
 
-    List<int> diaryId = list.map<int>((value){
+    List<int> diaryId = diaryList.map<int>((value){
       return value['id'];
     }).toList();
 
-    List<String> diaryArticle = list.map<String>((value){
+    List<String> diaryArticle = diaryList.map<String>((value){
       return value['article'];
     }).toList();
 
-    List<DateTime> diaryDate = list.map<DateTime>((value){
+    List<DateTime> diaryDate = diaryList.map<DateTime>((value){
       return DateTime.parse(value['date']);
     }).toList();
 

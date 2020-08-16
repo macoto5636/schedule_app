@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:scheduleapp/app_theme.dart';
+import 'package:scheduleapp/extension_diary/diary_detail_only_page.dart';
 import 'package:scheduleapp/extension_diary/diary_main_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,8 +44,7 @@ class Schedules{
 class CalendarView extends StatefulWidget{
   //String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
   Function(String) setCurrentDate;
-  Function callback;
-  CalendarView(this.setCurrentDate,this.callback);
+  CalendarView(this.setCurrentDate);
 
   @override
   _CalendarState createState() => new _CalendarState();
@@ -455,7 +455,7 @@ class _CalendarState extends State<CalendarView>{
                   "article": _schedules[i].title,
                   "date": date,
                 };
-                moveDiaryDetailPage(context,_schedules[i].index);
+                moveDiaryDetailPage(context,diaryList,_schedules[i].index);
               }
             },
             child: Padding(
@@ -571,21 +571,13 @@ class _CalendarState extends State<CalendarView>{
   }
 
   //日記詳細
-  moveDiaryDetailPage(BuildContext context,index) async{
+  moveDiaryDetailPage(BuildContext context,data,index) async{
     Navigator.of(context).pop();
     Navigator.of(context).push(
         MaterialPageRoute(
-            builder: (context) {
-              return DiaryMainPage();
-            }
+          builder: (context) => DiaryDetailOnlyPage(data,index),
         )
     );
-    await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => DiaryDetailPage(diaryData: diaryList,callback: callback,editIndex: index,),
-        )
-    );
-    widget.callback();
   }
 
   //今月の位置に戻るボタン押したとき
