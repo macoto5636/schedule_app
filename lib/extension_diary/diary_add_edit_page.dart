@@ -148,7 +148,7 @@ class _DiaryAddEditPageState extends State<DiaryAddEditPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(8),
               child: imageArea()
             ),
           ],
