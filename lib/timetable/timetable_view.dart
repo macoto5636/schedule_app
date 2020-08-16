@@ -1,21 +1,18 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/extension_diary/diary_detail_only_page.dart';
 
 import 'package:scheduleapp/timetable/timetable_view_default_style.dart';
 
 import 'package:scheduleapp/network_utils/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:scheduleapp/extension_diary/diary_detail_page.dart';
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
 import 'package:scheduleapp/schedule_detail.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 
 class DayOfWeek{
   int id;
@@ -33,8 +30,9 @@ class Schedules{
   //スケジュールか拡張機能か識別するためのID
   //(0:Schedule, 1:diary)
   int typeId;
+  int index;
 
-  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId);
+  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId,this.index);
 }
 
 class TimeTableView extends StatefulWidget {
@@ -67,6 +65,7 @@ class _TimeTableViewState extends State<TimeTableView>{
   String _headerText = "";
 
   List<Schedules> _schedules = [];
+  List diaryList;
 
   ScrollController _scrollController;
   PageController _pageController = PageController(initialPage: 1);
@@ -173,7 +172,8 @@ class _TimeTableViewState extends State<TimeTableView>{
                   schedulesStartDate[i],
                   schedulesEndDate[i],
                   schedulesColor[i],
-                  0
+                  0,
+                  i
               ));
             }else{
               int flag = 0;
@@ -189,6 +189,7 @@ class _TimeTableViewState extends State<TimeTableView>{
                       schedulesEndDate[i],
                       schedulesColor[i],
                       0,
+                      i
                     )
                   );
                   flag = 1;
@@ -201,6 +202,7 @@ class _TimeTableViewState extends State<TimeTableView>{
                       DateTime(temp.year, temp.month, temp.day, 23, 59),
                       schedulesColor[i],
                       0,
+                      i
                     )
                   );
                   temp = DateTime(temp.year, temp.month, temp.day + 1);
@@ -246,17 +248,17 @@ class _TimeTableViewState extends State<TimeTableView>{
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
     http.Response response = await Network().getData("diary/get/$calendarId");
-    List list = json.decode(response.body);
+    diaryList = json.decode(response.body);
 
-    List<int> diaryId = list.map<int>((value){
+    List<int> diaryId = diaryList.map<int>((value){
       return value['id'];
     }).toList();
 
-    List<String> diaryArticle = list.map<String>((value){
+    List<String> diaryArticle = diaryList.map<String>((value){
       return value['article'];
     }).toList();
 
-    List<DateTime> diaryDate = list.map<DateTime>((value){
+    List<DateTime> diaryDate = diaryList.map<DateTime>((value){
       return DateTime.parse(value['date']);
     }).toList();
 
@@ -270,7 +272,9 @@ class _TimeTableViewState extends State<TimeTableView>{
               diaryDate[i],
               diaryDate[i],
               diaryColor,
-              1));
+              1,
+              i
+          ));
         }
       });
     }
@@ -351,10 +355,10 @@ class _TimeTableViewState extends State<TimeTableView>{
   }
 
   //日記詳細
-  moveDiaryDetailPage(BuildContext context, data){
+  moveDiaryDetailPage(BuildContext context,index){
     Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => DiaryDetailPage(diaryData: data,callback: callback),
+          builder: (context) => DiaryDetailOnlyPage(diaryList,index),
         )
     );
   }
@@ -484,7 +488,7 @@ class _TimeTableViewState extends State<TimeTableView>{
                               "article" : scheduleList[num].title,
                               "date" : date,
                             };
-                            moveDiaryDetailPage(context, diaryData);
+                            moveDiaryDetailPage(context,scheduleList[num].index);
                           }
                         },
                       child:Container(
