@@ -3,13 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:scheduleapp/app_theme.dart';
+import 'package:scheduleapp/calendar/calendar_change_page.dart';
+
 import 'package:scheduleapp/extention_drawer.dart';
 import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/first_boot_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
-import 'package:scheduleapp/setting_page.dart';
+import 'package:scheduleapp/settings/setting_page.dart';
 import 'package:scheduleapp/timetable/timetable_view.dart';
 
 import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
@@ -17,35 +20,39 @@ import 'package:scheduleapp/schedule_add/schedule_add_repeat_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
-import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  //runApp(MyApp());
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => RepeatChecker()),
-      ChangeNotifierProvider(create: (_) => NoticeChecker()),
-      ChangeNotifierProvider(create: (_) => ColorChecker()),
-    ],
-    child:MyApp(),
-  )
-  );
-
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.getInstance().then((prefs) {
+    var themeKey = prefs.getString("theme_key") ?? "themeLightBlue";
+    runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeNotifier(themeKey)),
+            ChangeNotifierProvider(create: (_) => RepeatChecker()),
+            ChangeNotifierProvider(create: (_) => NoticeChecker()),
+            ChangeNotifierProvider(create: (_) => ColorChecker()),
+          ],
+          child:MyApp(),
+        )
+    );
+  });
 }
 
 class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-//    WidgetsBinding.instance.addPostFrameCallback((_) { _judgeAuth(context); });
+    final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
       title: 'schedule_app',
-      theme: ThemeData(
-        primaryColor: Colors.blue,
-        primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: themeNotifier.getTheme(),
+//      theme: ThemeData(
+//        primaryColor: Colors.blue,
+//        primarySwatch: Colors.blue,
+//        visualDensity: VisualDensity.adaptivePlatformDensity,
+//      ),
 //      home: MyHomePage(title: '2020年'),
         home: SplashScreen(),
     );
@@ -64,7 +71,7 @@ class MyHomePage extends StatefulWidget {
 _MyHomePageState myHomePageState = _MyHomePageState();
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _currentTabIndex = 1; //BottomNavigationBarItem現在選択しているやつ
+  int _currentTabIndex = 2; //BottomNavigationBarItem現在選択しているやつ
 
   String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";  //現在表示されてるカレンダーの年月
 
@@ -106,9 +113,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: Drawer(
         //拡張機能一覧
-          child: ExtensionDrawer()
+          child: ExtensionDrawer(callback: callback,)
       ),
       appBar: AppBar(
+//        backgroundColor: getPrimaryColor(context),
+        centerTitle: true,
         title: Text(currentDate),
         actions: <Widget>[
           IconButton(
@@ -122,10 +131,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Container(
         child: Column(
           children: [
-            if(_page==1) Expanded(
+            if(_currentTabIndex == 0)Expanded(
+              child: SettingPage(),
+            ),
+            if(_currentTabIndex == 2 && _page==1) Expanded(
               child: CalendarView(setCurrentDate),
             ),
-            if(_page==2) Expanded(
+            if(_currentTabIndex == 2 && _page==2) Expanded(
               child: TimeTableView(setCurrentDate),
             ),
           ],
@@ -137,6 +149,7 @@ class _MyHomePageState extends State<MyHomePage> {
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
             child: Icon(Icons.add, size: 40.0,),
+
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ScheduleEditPage(data: null,dateTime: null,))
@@ -173,10 +186,13 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
     if(index == 0){
-      Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SettingPage())
-      );
+      setState(() {
+        setCurrentDate("設定");
+      });
+//      Navigator.push(
+//          context,
+//          MaterialPageRoute(builder: (context) => SettingPage())
+//      );
     }
     if(index == 2){
       if(_page == 1){

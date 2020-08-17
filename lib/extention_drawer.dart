@@ -6,10 +6,14 @@ import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import 'app_theme.dart';
 import 'extension_add_page.dart';
 import 'extension_diary/diary_main_page.dart';
+import 'network_utils/api.dart';
 
 class ExtensionDrawer extends StatefulWidget {
+  Function callback;
+  ExtensionDrawer({ this.callback });
   @override
   _ExtensionDrawerState createState() => _ExtensionDrawerState();
 }
@@ -40,6 +44,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
       children: <Widget>[
         Container(
           height: 80.0,
+          color: getPrimaryColor(context),
           child: DrawerHeader(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,7 +64,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
               ],
             ),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+//              color: Theme.of(context).primaryColor,
             ),
           ),
         ),
@@ -67,7 +72,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
           padding: EdgeInsets.only(left: 10,bottom: 5),
           child: Text('$name  さん',style: TextStyle(fontSize: 20),),
         ),
-        ExtensionListView(),
+        ExtensionListView(callback: widget.callback,),
         authButton(),
       ],
     );
@@ -75,6 +80,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
 
 //  認証済判定
 //  未認証なら「ログイン会員登録」ボタン表示
+//  ログインしていないとアプリは使えないので不必要
   Widget authButton(){
     var _token = _getPrefItems();
 
@@ -101,21 +107,24 @@ _getPrefItems() async {
 
 //drawerの中身
 class ExtensionListView extends StatefulWidget {
+  Function callback;
+  ExtensionListView({ this.callback });
   @override
   _ExtensionListViewState createState() => _ExtensionListViewState();
 }
 
 class _ExtensionListViewState extends State<ExtensionListView> {
   List extensions;
+  List haveExtensions = [];
   var token;
   var calendarId;
-  bool extensionFlag = true;
+  //bool extensionFlag = true;
+  bool extensionFlag = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _getData();
   }
 
   Future<bool> _getData() async {
@@ -124,27 +133,28 @@ class _ExtensionListViewState extends State<ExtensionListView> {
     token = jsonDecode(localStorage.getString('token'))['token'];
     calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
-//    HTTPリクエストのヘッダー部分
-//    トークンをセットしている
-    Map<String, String> requestHeaders = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json',
-      'Authorization': "Bearer $token"
-    };
+    http.Response res = await Network().getData("extension/addlist/$calendarId");
 
-    final String url = "http://10.0.2.2:8000/api/extension/addlist/$calendarId";
-    http.Response response = await http.get(
-        url,
-        headers: requestHeaders
-    );
+    extensions = jsonDecode(res.body);
 
-    extensions = jsonDecode(response.body);
+//    extensions.forEach((element) {
+//      if(!element["flag"]){
+//        extensionFlag = false;
+//      }
+//    });
+    haveExtensions.clear();
 
     extensions.forEach((element) {
-      if(!element["flag"]){
-        extensionFlag = false;
+      if(element["flag"] || !extensionFlag){
+        extensionFlag = true;
+      }
+
+      if(element["flag"]){
+        haveExtensions.add(element);
       }
     });
+
+    print(haveExtensions);
 
     return extensionFlag;
   }
@@ -158,14 +168,13 @@ class _ExtensionListViewState extends State<ExtensionListView> {
           if (snapshot.hasData) {
             if(snapshot.data){
               //現在のカレンダーに拡張機能が一つでも入っている場合の表示
-              return extensions == null ? Container() : Container(
+              return haveExtensions == null ? Container() : Container(
                 child: ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context, int index){
                       return Container(
                         decoration: BoxDecoration(
-                          color: Colors.blueGrey[50],
                           border: Border(
                             top: BorderSide(color: Colors.grey),
                             bottom: BorderSide(color: Colors.grey)
@@ -173,17 +182,17 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                         ),
                         child: ListTile(
                           title: Text(
-                            extensions[index]["ex_name"],
+                            haveExtensions[index]["ex_name"],
                             style: TextStyle(fontSize: 20),
                           ),
                           trailing: Icon(Icons.arrow_forward_ios),
                           onTap: (){
-                            moveExtensionSubPages(context,extensions[index]["id"]);
+                            moveExtensionSubPages(context,extensions[index]["id"],widget.callback);
                           },
                         ),
                       );
                     },
-                    itemCount: extensions.length,
+                    itemCount: haveExtensions.length,
                 ),
               );
             }else{
@@ -255,15 +264,17 @@ moveLoginForm(BuildContext context){
 }
 
 //拡張機能のページ（機能ページ）へ移動
-void moveExtensionSubPages(BuildContext context,int id){
+void moveExtensionSubPages(BuildContext context,int id,callback) async{
   switch(id){
-    case 1 : Navigator.of(context).push(
+    case 1 : await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context){
           return DiaryMainPage();
         },
       )
     );
+      callback(); break;
+    case 2 : {}
   }
 }
 
