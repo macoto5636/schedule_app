@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:scheduleapp/app_theme.dart';
 import 'package:scheduleapp/calendar/calendar_change_page.dart';
 
 import 'package:scheduleapp/extention_drawer.dart';
+import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/first_boot_page.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/settings/setting_page.dart';
@@ -18,8 +21,6 @@ import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:async';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,8 +77,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   int _page = 1;
 
-
-  callback(){
+  callback(bool status){
     setState(() {
       if(_page == 1){
         _page = 2;
@@ -124,10 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.view_carousel),
             iconSize: 35,
             tooltip: 'change calendar',
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CalendarChangePage())
-              )
+            onPressed: (){},
           )
         ],
       ),
@@ -152,16 +149,11 @@ class _MyHomePageState extends State<MyHomePage> {
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
             child: Icon(Icons.add, size: 40.0,),
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return ScheduleAddPage();
-                        }
-                      )
-                  );
-                  callback();
-                }
+
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ScheduleEditPage(data: null,dateTime: null,))
+                )
             )
       ),
       bottomNavigationBar: BottomNavigationBar(

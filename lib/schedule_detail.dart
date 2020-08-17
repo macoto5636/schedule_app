@@ -4,6 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
+import 'package:scheduleapp/network_utils/api.dart';
+import 'package:provider/provider.dart';
+
+import './schedule_add/schedule_add_repeat_page.dart';
+import './schedule_add/schedule_add_notice_page.dart';
 
 
 class DayOfWeek{
@@ -58,6 +64,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
     DayOfWeek(7, "日"),
   ];
 
+  int _id = 0;                  //予定のID
   String _title = "";           //予定のタイトル
   int _allDayFlag = 0;         //オールデイか否かのフラグ
   DateTime _startDate = DateTime.now();     //開始日時
@@ -69,6 +76,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   String _memo = "";            //予定のメモ
   String _place = "";           //予定の場所
   String _urlSchedule = "";             //予定のURL
+
+  Map data;
 
   var iconSIze = 25.0;
   
@@ -90,19 +99,25 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       //print("Response body: ${response.body}");
       Map<String, dynamic> scheduleDetail = json.decode(response.body);
 
-      setState(() {
-        _title = scheduleDetail['title'];
-        _allDayFlag = scheduleDetail['all_day'];
-        _startDate = DateTime.parse(scheduleDetail['start_date']);
-        _endDate = DateTime.parse(scheduleDetail['end_date']);
-        _notificationFlag = scheduleDetail['notification_flag'];
-        _notification = scheduleDetail['notification'];
-        _repetitionFlag = scheduleDetail['repetition_flag'];
-        _repetition = scheduleDetail['repetition'];
-        _memo = scheduleDetail['memo'];
-        _place = scheduleDetail['place'];
-        _urlSchedule = scheduleDetail['url'];
-      });
+      if (this.mounted){
+        setState(() {
+          _id = scheduleDetail['id'];
+          _title = scheduleDetail['title'];
+          _allDayFlag = scheduleDetail['all_day'];
+          _startDate = DateTime.parse(scheduleDetail['start_date']);
+          _endDate = DateTime.parse(scheduleDetail['end_date']);
+          _notificationFlag = scheduleDetail['notification_flag'];
+          _notification = scheduleDetail['notification'];
+          _repetitionFlag = scheduleDetail['repetition_flag'];
+          _repetition = scheduleDetail['repetition'];
+          _memo = scheduleDetail['memo'];
+          _place = scheduleDetail['place'];
+          _urlSchedule = scheduleDetail['url'];
+
+          data = scheduleDetail;
+          print(data);
+        });
+      }
     });
    }
 
@@ -237,9 +252,50 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
               _buildListView(),
               Container(
                 width: double.infinity,
-                child: Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Text("編集", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
+                child: GestureDetector(
+                  onTap: () {
+                    print("debug click");
+                    bool _allDayFlagBool;
+                    bool _repetitionFlagBool;
+                    bool _notificationFlagBool;
+                    if(_allDayFlag == 0){
+                      _allDayFlagBool = false;
+                    }else{
+                      _allDayFlagBool = true;
+                    }
+                    if(_allDayFlag == 0){
+                      _repetitionFlagBool = false;
+                    }else{
+                      _repetitionFlagBool = true;
+                    }
+                    if(_allDayFlag == 0){
+                      _notificationFlagBool = false;
+                    }else{
+                      _notificationFlagBool = true;
+                    }
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
+                        )
+                    );
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text("編集", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
+                  ),
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: GestureDetector(
+                  onTap: () {
+                    showDeleteCheckDialog(context);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text("削除", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
+                  ),
                 ),
               )
             ],
@@ -249,4 +305,38 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       ),
     );
   }
+
+  // 削除確認ダイアログを表示の上、削除する
+  void showDeleteCheckDialog(BuildContext context){
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("予定の削除"),
+            content: Text("元には戻せませんが、本当に削除してよろしいですか？"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("キャンセル"),
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                child: Text("OK"),
+                onPressed: (){
+                  _deleteScheduleItem(_id);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        }
+    );
+  }
+
+  _deleteScheduleItem(int scheduleId) async{
+    var result = await Network().getData("schedules/delete/$scheduleId");
+  }
+
 }
