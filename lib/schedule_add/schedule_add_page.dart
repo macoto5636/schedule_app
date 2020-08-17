@@ -14,8 +14,9 @@ import 'schedule_add_color_page.dart';
 
 class ScheduleEditPage extends  StatefulWidget{
   Map data;
+  DateTime dateTime;
 
-  ScheduleEditPage({this.data}){
+  ScheduleEditPage({this.data,this.dateTime}){
     if(data == null){
       data = {
         "id":null,
@@ -33,6 +34,10 @@ class ScheduleEditPage extends  StatefulWidget{
         "url" : "",
         "calendar_id": 1,
       };
+      if(dateTime != null){
+        data["start_date"] = dateTime.add(new Duration(hours: 12));
+        data["end_date"] = data["start_date"].add(new Duration(hours: 1));
+      }
     }else{
       data["start_date"] = DateTime.parse(data["start_date"].toString());
       data["end_date"] = DateTime.parse(data["end_date"].toString());
@@ -51,6 +56,15 @@ class ScheduleEditPage extends  StatefulWidget{
         data["notification_flag"] = false;
       }else{
         data["notification_flag"] = true;
+      }
+      if(data["memo"] == null){
+        data["memo"] = "";
+      }
+      if(data["place"] == null){
+        data["place"] = "";
+      }
+      if(data["url"] == null) {
+        data["url"] = "";
       }
     }
   }
@@ -332,8 +346,6 @@ class ScheduleEditPageState extends State<ScheduleEditPage>{
     bool value;
     //予定情報をMap:scheduleDataにセットする
     set();
-    print(originalData);
-    print(scheduleData);
     if(
         originalData["title"] != scheduleData["title"] ||
         originalData["all_day"] != scheduleData["all_day"] ||

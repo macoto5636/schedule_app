@@ -139,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Icon(Icons.add, size: 40.0,),
                 onPressed: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ScheduleEditPage(data: null,))
+                  MaterialPageRoute(builder: (context) => ScheduleEditPage(data: null,dateTime: null,))
                 )
             )
       ),

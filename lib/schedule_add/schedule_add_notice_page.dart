@@ -60,21 +60,6 @@ class NoticeChecker with ChangeNotifier{
         listChecked[i] = false;
       }
     }
-//    listChecked[2] = true;
-//    listChecked[3] = true;
-//    listChecked[4] = true;
-//    listChecked[5] = true;
-//    listChecked[6] = true;
-//    for(int i = 0; i < str.length; i++){
-//      print(str.substring(0, 1));
-//      if(str.substring(0, 1) == "1"){
-
-//        _listChecked[i] = true;
-//      }else{
-//        _listChecked[i] = false;
-//      }
-//      str = str.substring(1,str.length);
-//    }
   }
   void set(int i) {
     if(_listChecked[i]){  //選択した項目がtrueのとき

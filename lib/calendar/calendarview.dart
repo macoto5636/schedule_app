@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
@@ -347,6 +348,7 @@ class _CalendarState extends State<CalendarView>{
 
     setState(() {
       _selectDate = date;
+      print(_selectDate);
     });
 
     //print(_selectDate.toString());
@@ -360,29 +362,34 @@ class _CalendarState extends State<CalendarView>{
     context: context,
     builder: (BuildContext context) => new AlertDialog(
       title: RichText(
-              text: TextSpan(
-                children: [
-                  WidgetSpan(
-                    child:Container(
-                      margin: EdgeInsets.only(bottom: 5.0),
-                      child: Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")",
-                        style: defaultDialogTitleTextStyle,),
-                    )
-                  ),
-                  WidgetSpan(
-                    child: GestureDetector(
-                      onTap: (){
-                        print("on tapped add icon!!!");
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 67.0),
-                        child: Icon(Icons.add, size: 40, color: Colors.grey,),
-                      ),
-                    )
+        text: TextSpan(
+            children: [
+              WidgetSpan(
+                  child:Container(
+                    margin: EdgeInsets.only(bottom: 5.0),
+                    child: Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")",
+                      style: defaultDialogTitleTextStyle,),
                   )
-                ]
               ),
-            ),
+              WidgetSpan(
+                  child: GestureDetector(
+                    onTap: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScheduleEditPage(data: null,dateTime: _selectDate,),
+                          )
+                      );
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(left: 67.0),
+                      child: Icon(Icons.add, size: 40, color: Colors.grey,),
+                    ),
+                  )
+              )
+            ]
+        ),
+      ),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[

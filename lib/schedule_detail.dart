@@ -5,6 +5,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
+import 'package:scheduleapp/network_utils/api.dart';
+import 'package:provider/provider.dart';
+
+import './schedule_add/schedule_add_repeat_page.dart';
+import './schedule_add/schedule_add_notice_page.dart';
 
 
 class DayOfWeek{
@@ -272,16 +277,25 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ScheduleEditPage(data: data)
-//                          builder: (context) => ScheduleEditPage(
-//                              1,_id,_title,_allDayFlagBool,_startDate,_endDate, _repetitionFlagBool,
-//                              _repetition, _notificationFlagBool, _notification, , _memo,_place,_urlSchedule),
+                          builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
                         )
                     );
                   },
                   child: Padding(
                     padding: EdgeInsets.all(10.0),
                     child: Text("編集", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
+                  ),
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                child: GestureDetector(
+                  onTap: () {
+                    showDeleteCheckDialog(context);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text("削除", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
                   ),
                 ),
               )
@@ -292,4 +306,38 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
       ),
     );
   }
+
+  // 削除確認ダイアログを表示の上、削除する
+  void showDeleteCheckDialog(BuildContext context){
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("予定の削除"),
+            content: Text("元には戻せませんが、本当に削除してよろしいですか？"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("キャンセル"),
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                child: Text("OK"),
+                onPressed: (){
+                  _deleteScheduleItem(_id);
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        }
+    );
+  }
+
+  _deleteScheduleItem(int scheduleId) async{
+    var result = await Network().getData("schedules/delete/$scheduleId");
+  }
+
 }
