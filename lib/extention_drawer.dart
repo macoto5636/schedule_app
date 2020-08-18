@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'app_theme.dart';
 import 'extension_add_page.dart';
 import 'extension_diary/diary_main_page.dart';
+import 'extension_todo/todo_main_page.dart';
 import 'network_utils/api.dart';
 
 class ExtensionDrawer extends StatefulWidget {
@@ -270,7 +271,13 @@ void moveExtensionSubPages(BuildContext context,int id){
       )
     );
     break;
-    case 2 : {}
+    case 2 : Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context){
+          return TodoMainPage();
+        },
+      )
+    );
   }
 }
 

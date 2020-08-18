@@ -579,11 +579,6 @@ class _CalendarState extends State<CalendarView>{
 
   //月切り替わったときの処理
   void onPageChanged(pageId){
-    print("pageId:" + pageId.toString());
-    for(int i=0; i < _dates.length; i++){
-      print(i.toString() + ":" + _dates[i].toString());
-    }
-
     if(pageId == _dates.length -1){
       DateTime tempDate = getDateTime(_dates.length-1, 10);
       setState((){
