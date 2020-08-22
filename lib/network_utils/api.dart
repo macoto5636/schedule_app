@@ -60,21 +60,15 @@ class Network{
   postUploadImage(data,File file,apiUrl) async{
     var fullUrl = _url + apiUrl;
     await _getToken();
-    print("---------file----------");
-    print(file);
-    print("---------data----------");
-    print(data);
 
     var request = http.MultipartRequest('POST', Uri.parse(fullUrl));
     request.fields['data'] = jsonEncode(data);
     var pic = await http.MultipartFile.fromPath("image", file.path);
     request.files.add(pic);
     request.headers.addAll(_setHeaders());
-    print("--------request---------");
-    print(request);
+
     var response = await request.send();
     if (response.statusCode == 200) print('Uploaded!');
-    print(response.statusCode);
   }
 
 

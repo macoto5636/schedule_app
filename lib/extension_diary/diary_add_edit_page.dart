@@ -359,7 +359,7 @@ class _DiaryAddEditPageState extends State<DiaryAddEditPage> {
 
   //既に登録されているページなら編集画面と入れ替える
   alreadyItem(){
-    var judgeResult;
+    var judgeResult = true;
     judge(diary,callback){
       if(diary["date"] == formatPost.format((_date))){
           mode = false;

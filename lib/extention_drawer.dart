@@ -176,8 +176,8 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                       return Container(
                         decoration: BoxDecoration(
                           border: Border(
-                            top: BorderSide(color: Colors.grey),
-                            bottom: BorderSide(color: Colors.grey)
+                            top: BorderSide(color: Colors.grey[300]),
+                            bottom: BorderSide(color: Colors.grey[300])
                           )
                         ),
                         child: ListTile(
@@ -273,7 +273,7 @@ void moveExtensionSubPages(BuildContext context,int id,callback) async{
         },
       )
     );
-      callback(); break;
+      callback(true); break;
     case 2 : {}
   }
 }
