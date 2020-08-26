@@ -6,6 +6,7 @@ import 'package:scheduleapp/auth/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
+import 'extension_todo/todo_main_page.dart';
 import 'app_theme.dart';
 import 'extension_add_page.dart';
 import 'extension_diary/diary_main_page.dart';
@@ -274,7 +275,13 @@ void moveExtensionSubPages(BuildContext context,int id,callback) async{
       )
     );
       callback(true); break;
-    case 2 : {}
+    case 2 : Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context){
+            return TodoMainPage();
+          },
+        )
+    );
   }
 }
 

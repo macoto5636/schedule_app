@@ -10,6 +10,7 @@ import 'package:scheduleapp/app_theme.dart';
 import 'package:scheduleapp/extension_diary/diary_detail_only_page.dart';
 import 'package:scheduleapp/extension_diary/diary_main_page.dart';
 
+import 'package:scheduleapp/extension_todo/todo_main_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
@@ -38,7 +39,7 @@ class Schedules{
   DateTime endDate;
   Color color;
   //スケジュールか拡張機能か識別するためのID
-  //(0:Schedule, 1:diary)
+  //(0:Schedule, 1:diary, 2:To do)
   int typeId;
   int index;
 
@@ -193,6 +194,9 @@ class _CalendarState extends State<CalendarView>{
       if(extensionId[i] == 1){
         getDiary();
       }
+      if(extensionId[i] == 2){
+        getTodo();
+      }
     }
   }
 
@@ -230,6 +234,27 @@ class _CalendarState extends State<CalendarView>{
               i
           ));
         }
+      });
+    }
+  }
+
+  //Todo取得
+  void getTodo() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
+    http.Response response = await Network().getData("todo/get/" + calendarId.toString());
+    List list = json.decode(response.body);
+
+    if(mounted){
+      setState(() {
+        int i =0;
+        list.forEach((element){
+          if(element["status"] == 0 && element["date"] != null){
+            _schedules.add(Schedules(element["id"], element["task_name"], true, DateTime.parse(element["date"]), DateTime.parse(element["date"]), todoColor, 2, i));
+            i++;
+          }
+        });
       });
     }
   }
@@ -466,6 +491,8 @@ class _CalendarState extends State<CalendarView>{
                   "date": date,
                 };
                 moveDiaryDetailPage(context,diaryList,_schedules[i].index);
+              }else if(_schedules[i].typeId == 2){
+                moveTodoPage(context);
               }
             },
             child: Padding(
@@ -542,7 +569,30 @@ class _CalendarState extends State<CalendarView>{
                                 ],
                               )
                           ),
-                        )
+                        ),
+                      if(_schedules[i].typeId == 2)
+                      Expanded(
+                        child: Container(
+                          child: Row(
+                            children: [
+                              //なぜかRichTextだと思う通りにいかず、ネスト地獄になった
+                              Padding(
+                                padding: EdgeInsets.only(right: 5.0),
+                                child: Icon(
+                                  Icons.check, size: 20.0,),
+                              ),
+                              Expanded(
+                                child: Container(
+                                    child: Text(_schedules[i].title,
+                                      style: defaultDialogTextStyle,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,)
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   )
               ),
@@ -586,6 +636,15 @@ class _CalendarState extends State<CalendarView>{
     Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => DiaryDetailOnlyPage(data,index),
+        )
+    );
+  }
+
+  //Todo一覧
+  moveTodoPage(BuildContext context){
+    Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => TodoMainPage(),
         )
     );
   }
@@ -774,6 +833,22 @@ class _CalendarState extends State<CalendarView>{
                                 ),
                                 TextSpan(
                                   text: "日記",
+                                )
+                              ]
+                          ),
+                        if(_schedules[i].typeId == 2)
+                          TextSpan(
+                              children: [
+                                WidgetSpan(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: 5.0),
+                                      child: Icon(
+                                        Icons.check, size: 11.0,
+                                        color: Colors.white,),
+                                    )
+                                ),
+                                TextSpan(
+                                  text: "ToDo",
                                 )
                               ]
                           )
