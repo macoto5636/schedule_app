@@ -14,6 +14,7 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:scheduleapp/schedule_detail.dart';
+import 'package:scheduleapp/extension_todo/todo_main_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -237,6 +238,9 @@ class _TimeTableViewState extends State<TimeTableView>{
       if(extensionId[i] == 1){
         getDiary();
       }
+      if(extensionId[i] == 2){
+        getTodo();
+      }
     }
   }
 
@@ -272,6 +276,25 @@ class _TimeTableViewState extends State<TimeTableView>{
               diaryColor,
               1));
         }
+      });
+    }
+  }
+
+  //Todo取得
+  void getTodo() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
+    http.Response response = await Network().getData("todo/get/" + calendarId.toString());
+    List list = json.decode(response.body);
+
+    if(mounted){
+      setState(() {
+        list.forEach((element){
+          if(element["status"] == 0 && element["date"] != null){
+            _schedules.add(Schedules(element["id"], element["task_name"], true, DateTime.parse(element["date"]), DateTime.parse(element["date"]), todoColor, 2));
+          }
+        });
       });
     }
   }
@@ -358,6 +381,16 @@ class _TimeTableViewState extends State<TimeTableView>{
         )
     );
   }
+
+  //Todo一覧
+  moveTodoPage(BuildContext context){
+    Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => TodoMainPage(),
+        )
+    );
+  }
+
 
   Widget _buildTitle(){
     return Container(
@@ -485,6 +518,8 @@ class _TimeTableViewState extends State<TimeTableView>{
                               "date" : date,
                             };
                             moveDiaryDetailPage(context, diaryData);
+                          }else if(scheduleList[num].typeId == 2){
+                            moveTodoPage(context);
                           }
                         },
                       child:Container(
@@ -515,6 +550,20 @@ class _TimeTableViewState extends State<TimeTableView>{
                                       )
                                     ]
                                   )
+                                else if(scheduleList[num].typeId == 2)
+                                    TextSpan(
+                                        children:[
+                                          WidgetSpan(
+                                              child: Padding(
+                                                padding: EdgeInsets.only(right: 5.0),
+                                                child: Icon(Icons.check, size: 15.0, color: Colors.white,),
+                                              )
+                                          ),
+                                          TextSpan(
+                                            text: scheduleList[num].title,
+                                          )
+                                        ]
+                                    )
                               ]
                             ),
                           ),
