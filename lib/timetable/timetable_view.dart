@@ -2,6 +2,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:scheduleapp/extension_diary/diary_detail_only_page.dart';
+import 'package:scheduleapp/extension_todo/todo_main_page.dart';
 
 import 'package:scheduleapp/timetable/timetable_view_default_style.dart';
 
@@ -28,7 +29,7 @@ class Schedules{
   DateTime endDate;
   Color color;
   //スケジュールか拡張機能か識別するためのID
-  //(0:Schedule, 1:diary)
+  //(0:Schedule, 1:diary, 2:todo)
   int typeId;
   int index;
 
@@ -113,7 +114,6 @@ class _TimeTableViewState extends State<TimeTableView>{
     List<DateTime> schedulesStartDate = [];
     List<DateTime> schedulesEndDate = [];
     List<Color> schedulesColor = [];
-    List<int> schedulesTypeId = [];
 
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
@@ -239,6 +239,9 @@ class _TimeTableViewState extends State<TimeTableView>{
       if(extensionId[i] == 1){
         getDiary();
       }
+      if(extensionId[i] == 2){
+        getTodo();
+      }
     }
   }
 
@@ -279,6 +282,28 @@ class _TimeTableViewState extends State<TimeTableView>{
       });
     }
   }
+
+  //todo取得
+  void getTodo() async{
+    SharedPreferences localStorage = await SharedPreferences.getInstance();
+    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
+
+    http.Response response = await Network().getData("todo/get/" + calendarId.toString());
+    List list = json.decode(response.body);
+
+    if(mounted){
+      setState(() {
+        int i = 0;
+        list.forEach((element){
+          if(element["status"] == 0 && element["date"] != null){
+            _schedules.add(Schedules(element["id"], element["task_name"], true, DateTime.parse(element["date"]), DateTime.parse(element["date"]), todoColor, 2, i));
+            i++;
+          }
+        });
+      });
+    }
+  }
+
 
   //日が切り替わったときの処理
   void onPageChanged(pageId){
@@ -359,6 +384,15 @@ class _TimeTableViewState extends State<TimeTableView>{
     Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => DiaryDetailOnlyPage(diaryList,index),
+        )
+    );
+  }
+
+  //Todo一覧
+  moveTodoPage(BuildContext context){
+    Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => TodoMainPage(),
         )
     );
   }
@@ -489,6 +523,8 @@ class _TimeTableViewState extends State<TimeTableView>{
                               "date" : date,
                             };
                             moveDiaryDetailPage(context,scheduleList[num].index);
+                          }else if(scheduleList[num].typeId == 2){
+                            moveTodoPage(context);
                           }
                         },
                       child:Container(
@@ -519,6 +555,20 @@ class _TimeTableViewState extends State<TimeTableView>{
                                       )
                                     ]
                                   )
+                                else if(scheduleList[num].typeId == 2)
+                                    TextSpan(
+                                        children:[
+                                          WidgetSpan(
+                                              child: Padding(
+                                                padding: EdgeInsets.only(right: 5.0),
+                                                child: Icon(Icons.check, size: 15.0, color: Colors.white,),
+                                              )
+                                          ),
+                                          TextSpan(
+                                            text: scheduleList[num].title,
+                                          )
+                                        ]
+                                    )
                               ]
                             ),
                           ),
