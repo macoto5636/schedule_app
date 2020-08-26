@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,6 +44,23 @@ class NoticeChecker with ChangeNotifier{
   List<bool> get listChecked => _listChecked;
   List<String> get listText => _listText;
 
+  void setString(String str){
+    int data = int.parse(str);
+    for(int i = 0; i < str.length; i++){
+      int syo = (data / pow(10,str.length -i -1)).round();
+      if(syo == 1){
+        if(i == 0){
+          _flg = false;
+        }else{
+          _flg = true;
+        }
+        listChecked[i] = true;
+        data = data - pow(10,str.length -i -1);
+      }else{
+        listChecked[i] = false;
+      }
+    }
+  }
   void set(int i) {
     if(_listChecked[i]){  //選択した項目がtrueのとき
       _listChecked[i] = false;  //選択した項目をfalseにする
@@ -65,7 +84,6 @@ class NoticeChecker with ChangeNotifier{
       }
       _listChecked[i] = true; //選択した項目をtrueにする
     }
-//    print(_flg);
     notifyListeners();
   }
 }

@@ -48,6 +48,7 @@ class RepeatChecker with ChangeNotifier{
       }
       _listChecked[_checked] = false;
       _checked = i;
+//      _text = _listText[i];
       _listChecked[i] = true;
     }
     notifyListeners();

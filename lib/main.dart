@@ -2,11 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'package:scheduleapp/app_theme.dart';
 import 'package:scheduleapp/calendar/calendar_change_page.dart';
 
 import 'package:scheduleapp/extention_drawer.dart';
+import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/first_boot_page.dart';
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
 
 import 'package:scheduleapp/calendar/calendarview.dart';
 import 'package:scheduleapp/settings/setting_page.dart';
@@ -18,8 +21,6 @@ import 'package:scheduleapp/schedule_add/schedule_add_notice_page.dart';
 import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:async';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,12 +48,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'schedule_app',
       theme: themeNotifier.getTheme(),
-//      theme: ThemeData(
-//        primaryColor: Colors.blue,
-//        primarySwatch: Colors.blue,
-//        visualDensity: VisualDensity.adaptivePlatformDensity,
-//      ),
-//      home: MyHomePage(title: '2020年'),
         home: SplashScreen(),
     );
   }
@@ -67,7 +62,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-_MyHomePageState myHomePageState = _MyHomePageState();
+//_MyHomePageState myHomePageState = _MyHomePageState();
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentTabIndex = 2; //BottomNavigationBarItem現在選択しているやつ
@@ -75,7 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
   String currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";  //現在表示されてるカレンダーの年月
 
   int _page = 1;
-
 
   callback(bool status){
     setState(() {
@@ -100,7 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
-
   void setCurrentDate(String date){
     setState(() {
       currentDate = date;
@@ -109,11 +102,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       drawer: Drawer(
         //拡張機能一覧
-          child: ExtensionDrawer()
+          child: ExtensionDrawer(callback: callback,)
       ),
       appBar: AppBar(
 //        backgroundColor: getPrimaryColor(context),
@@ -124,10 +116,9 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.view_carousel),
             iconSize: 35,
             tooltip: 'change calendar',
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CalendarChangePage())
-              )
+            onPressed: () {
+              moveChangeCalendarPage();
+            }
           )
         ],
       ),
@@ -152,18 +143,15 @@ class _MyHomePageState extends State<MyHomePage> {
           margin: EdgeInsets.only(top: 50.0),
           child:FloatingActionButton(
             child: Icon(Icons.add, size: 40.0,),
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) {
-                          return ScheduleAddPage();
-                        }
-                      )
-                  );
-                  callback(true);
-                  print("aaaaa");
-                }
-            )
+            onPressed: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>
+                      ScheduleEditPage(data: null, dateTime: null,))
+              );
+              callback(true);
+            }
+          )
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const<BottomNavigationBarItem>[
@@ -214,6 +202,15 @@ class _MyHomePageState extends State<MyHomePage> {
       });
     }
 
+  }
+
+  //カレンダー追加ページへ移動
+  moveChangeCalendarPage()async{
+    final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => CalendarChangePage())
+    );
+    callback(true);
   }
 
 }

@@ -16,10 +16,13 @@ class _LoginFormState extends State<LoginForm> {
   var email;
   var password;
 
+  var errorMessage = "";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text('ログイン'),
       ),
       body: Center(
@@ -52,6 +55,7 @@ class _LoginFormState extends State<LoginForm> {
                       margin: EdgeInsets.only(bottom: 10.0),
                       child: TextFormField(
                         keyboardType: TextInputType.text,
+                        obscureText: true,
                         decoration: InputDecoration(
                             prefixIcon: Icon(Icons.vpn_key),
                             hintText: 'パスワード'
@@ -63,6 +67,12 @@ class _LoginFormState extends State<LoginForm> {
                           password = passwordValue;
                           return null;
                         },
+                      ),
+                    ),
+                    Container(
+                      child: Text(
+                        errorMessage,
+                        style: TextStyle(color: Colors.red),
                       ),
                     ),
                     Padding(
@@ -100,7 +110,6 @@ class _LoginFormState extends State<LoginForm> {
     );
   }
 
-
 // ログイン
   _login() async{
     var data = {
@@ -122,9 +131,10 @@ class _LoginFormState extends State<LoginForm> {
           builder: (context) => MyHomePage()
       ));
 
-      debugPrint('ログイン成功');
     }else{
-      debugPrint('ログイン失敗');
+      setState(() {
+        errorMessage = "メールアドレスまたはパスワードが違います";
+      });
     }
   }
 }

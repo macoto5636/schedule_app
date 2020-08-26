@@ -2,8 +2,14 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'package:scheduleapp/schedule_add/schedule_add_page.dart';
+
 import 'package:intl/intl.dart';
 import 'package:scheduleapp/app_theme.dart';
+import 'package:scheduleapp/extension_diary/diary_detail_only_page.dart';
+import 'package:scheduleapp/extension_diary/diary_main_page.dart';
+
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'calendar_view_default_style.dart';
@@ -14,7 +20,6 @@ import 'package:scheduleapp/network_utils/api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:scheduleapp/extension_diary/diary_detail_page.dart';
-import 'package:scheduleapp/extension_todo/todo_main_page.dart';
 
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -33,10 +38,11 @@ class Schedules{
   DateTime endDate;
   Color color;
   //スケジュールか拡張機能か識別するためのID
-  //(0:Schedule, 1:diary, 2:To do)
+  //(0:Schedule, 1:diary)
   int typeId;
+  int index;
 
-  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId);
+  Schedules(this.id, this.title, this.allDay, this.startDate, this.endDate, this.color, this.typeId,this.index);
 }
 
 class CalendarView extends StatefulWidget{
@@ -68,6 +74,7 @@ class _CalendarState extends State<CalendarView>{
   int currentMonthPage = 1; //今月のページ
 
   List<Schedules> _schedules = [];
+  List diaryList;
 
   //  日記テーブルの内容の変更を検知するフラグ
   var _rebuildFlag;
@@ -154,7 +161,9 @@ class _CalendarState extends State<CalendarView>{
                 schedulesStartDate[i],
                 schedulesEndDate[i],
                 schedulesColor[i],
-                0));
+                0,
+                i
+            ));
           }
 
           getPlugin();
@@ -184,9 +193,6 @@ class _CalendarState extends State<CalendarView>{
       if(extensionId[i] == 1){
         getDiary();
       }
-      if(extensionId[i] == 2){
-        getTodo();
-      }
     }
   }
 
@@ -196,17 +202,17 @@ class _CalendarState extends State<CalendarView>{
     var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
 
     http.Response response = await Network().getData("diary/get/$calendarId");
-    List list = json.decode(response.body);
+    diaryList = json.decode(response.body);
 
-    List<int> diaryId = list.map<int>((value){
+    List<int> diaryId = diaryList.map<int>((value){
       return value['id'];
     }).toList();
 
-    List<String> diaryArticle = list.map<String>((value){
+    List<String> diaryArticle = diaryList.map<String>((value){
       return value['article'];
     }).toList();
 
-    List<DateTime> diaryDate = list.map<DateTime>((value){
+    List<DateTime> diaryDate = diaryList.map<DateTime>((value){
       return DateTime.parse(value['date']);
     }).toList();
 
@@ -220,27 +226,10 @@ class _CalendarState extends State<CalendarView>{
               diaryDate[i],
               diaryDate[i],
               diaryColor,
-              1));
+              1,
+              i
+          ));
         }
-      });
-    }
-  }
-
-  //Todo取得
-  void getTodo() async{
-    SharedPreferences localStorage = await SharedPreferences.getInstance();
-    var calendarId = jsonDecode(localStorage.getString('calendar'))['id'];
-
-    http.Response response = await Network().getData("todo/get/" + calendarId.toString());
-    List list = json.decode(response.body);
-
-    if(mounted){
-      setState(() {
-        list.forEach((element){
-          if(element["status"] == 0 && element["date"] != null){
-            _schedules.add(Schedules(element["id"], element["task_name"], true, DateTime.parse(element["date"]), DateTime.parse(element["date"]), todoColor, 2));
-          }
-        });
       });
     }
   }
@@ -360,6 +349,7 @@ class _CalendarState extends State<CalendarView>{
 
     setState(() {
       _selectDate = date;
+      print(_selectDate);
     });
 
     //print(_selectDate.toString());
@@ -373,29 +363,34 @@ class _CalendarState extends State<CalendarView>{
     context: context,
     builder: (BuildContext context) => new AlertDialog(
       title: RichText(
-              text: TextSpan(
-                children: [
-                  WidgetSpan(
-                    child:Container(
-                      margin: EdgeInsets.only(bottom: 5.0),
-                      child: Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")",
-                        style: defaultDialogTitleTextStyle,),
-                    )
-                  ),
-                  WidgetSpan(
-                    child: GestureDetector(
-                      onTap: (){
-                        print("on tapped add icon!!!");
-                      },
-                      child: Container(
-                        margin: EdgeInsets.only(left: 67.0),
-                        child: Icon(Icons.add, size: 40, color: Colors.grey,),
-                      ),
-                    )
+        text: TextSpan(
+            children: [
+              WidgetSpan(
+                  child:Container(
+                    margin: EdgeInsets.only(bottom: 5.0),
+                    child: Text(_selectDate.year.toString() + "年" + _selectDate.month.toString() + "月" + _selectDate.day.toString() + "日" + "(" + dayOfWeek[_selectDate.weekday -1].name + ")",
+                      style: defaultDialogTitleTextStyle,),
                   )
-                ]
               ),
-            ),
+              WidgetSpan(
+                  child: GestureDetector(
+                    onTap: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScheduleEditPage(data: null,dateTime: _selectDate,),
+                          )
+                      );
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(left: 67.0),
+                      child: Icon(Icons.add, size: 40, color: Colors.grey,),
+                    ),
+                  )
+              )
+            ]
+        ),
+      ),
       content: SingleChildScrollView(
         child: ListBody(
           children: <Widget>[
@@ -470,9 +465,7 @@ class _CalendarState extends State<CalendarView>{
                   "article": _schedules[i].title,
                   "date": date,
                 };
-                moveDiaryDetailPage(context, diaryData);
-              }else if(_schedules[i].typeId == 2){
-                moveTodoPage(context);
+                moveDiaryDetailPage(context,diaryList,_schedules[i].index);
               }
             },
             child: Padding(
@@ -549,30 +542,7 @@ class _CalendarState extends State<CalendarView>{
                                 ],
                               )
                           ),
-                        ),
-                      if(_schedules[i].typeId == 2)
-                        Expanded(
-                          child: Container(
-                              child: Row(
-                                children: [
-                                  //なぜかRichTextだと思う通りにいかず、ネスト地獄になった
-                                  Padding(
-                                    padding: EdgeInsets.only(right: 5.0),
-                                    child: Icon(
-                                      Icons.check, size: 20.0,),
-                                  ),
-                                  Expanded(
-                                    child: Container(
-                                        child: Text(_schedules[i].title,
-                                          style: defaultDialogTextStyle,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,)
-                                    ),
-                                  ),
-                                ],
-                              ),
-                          ),
-                        ),
+                        )
                     ],
                   )
               ),
@@ -611,20 +581,11 @@ class _CalendarState extends State<CalendarView>{
   }
 
   //日記詳細
-  moveDiaryDetailPage(BuildContext context, data){
+  moveDiaryDetailPage(BuildContext context,data,index) async{
     Navigator.of(context).pop();
     Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => DiaryDetailPage(diaryData: data,callback: callback),
-        )
-    );
-  }
-
-  //Todo一覧
-  moveTodoPage(BuildContext context){
-    Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => TodoMainPage(),
+          builder: (context) => DiaryDetailOnlyPage(data,index),
         )
     );
   }
@@ -636,6 +597,11 @@ class _CalendarState extends State<CalendarView>{
 
   //月切り替わったときの処理
   void onPageChanged(pageId){
+    print("pageId:" + pageId.toString());
+    for(int i=0; i < _dates.length; i++){
+      print(i.toString() + ":" + _dates[i].toString());
+    }
+
     if(pageId == _dates.length -1){
       DateTime tempDate = getDateTime(_dates.length-1, 10);
       setState((){
@@ -808,22 +774,6 @@ class _CalendarState extends State<CalendarView>{
                                 ),
                                 TextSpan(
                                   text: "日記",
-                                )
-                              ]
-                          ),
-                        if(_schedules[i].typeId == 2)
-                          TextSpan(
-                              children: [
-                                WidgetSpan(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(right: 5.0),
-                                      child: Icon(
-                                        Icons.check, size: 11.0,
-                                        color: Colors.white,),
-                                    )
-                                ),
-                                TextSpan(
-                                  text: "ToDo",
                                 )
                               ]
                           )

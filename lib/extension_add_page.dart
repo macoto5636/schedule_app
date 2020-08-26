@@ -15,6 +15,7 @@ class ExtensionAddPage extends StatelessWidget {
           icon: Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        centerTitle: true,
         title: Text("拡張機能の追加"),
       ),
       body: Container(
