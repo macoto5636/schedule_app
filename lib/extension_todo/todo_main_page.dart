@@ -614,12 +614,12 @@ class _TodoMainState extends State<TodoMain> {
               WidgetSpan(
                 child: Padding(
                   padding: EdgeInsets.only(left: 3.0),
-                  child: Icon(Icons.add, color: Theme.of(context).primaryColor, size: 15.0,),
+                  child: Icon(Icons.add, color: Theme.of(context).accentColor, size: 15.0,),
                 ),
               ),
               TextSpan(
                 text: "タスクを追加",
-                style: TextStyle(color: Theme.of(context).primaryColor),
+                style: TextStyle(color: Theme.of(context).accentColor),
               )
             ]
         ),

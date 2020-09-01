@@ -188,7 +188,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                           ),
                           trailing: Icon(Icons.arrow_forward_ios),
                           onTap: (){
-                            moveExtensionSubPages(context,extensions[index]["id"],widget.callback);
+                            moveExtensionSubPages(context,haveExtensions[index]["id"],widget.callback);
                           },
                         ),
                       );

@@ -111,9 +111,9 @@ class _CalendarState extends State<CalendarView>{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
 
-    var url = "http://10.0.2.2:8000/api/calendar/" + selectedCalendarId.toString();
-    print(url);
-    await http.get(url).then((response){
+    http.Response response = await Network().getData("calendar/" + selectedCalendarId.toString());
+    print(response);
+    await http.get(response).then((response){
       print("Response status: ${response.statusCode}");
 //      print("Response body: ${response.body}");
       List list = json.decode(response.body);
