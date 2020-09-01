@@ -17,33 +17,31 @@ class DayOfWeek{
   String name;
   DayOfWeek(this.id, this.name);
 }
-
-class ScheduleDetailPage extends StatelessWidget {
-  int id = 1;
-
-  ScheduleDetailPage(int id){
-    this.id = id;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text("詳細"),
-      ),
-      body: Container(
-        child: Center(
-          child: ScheduleDetail(id),
-        ),
-      ),
-    );
-  }
-}
+//
+//class ScheduleDetailPage extends StatelessWidget {
+//  int id = 1;
+//
+//  ScheduleDetailPage(int id){
+//    this.id = id;
+//  }
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return Scaffold(
+//      appBar: AppBar(
+//        centerTitle: true,
+//        title: Text("詳細"),
+//      ),
+//      body: Container(
+//        child: ScheduleDetail(id),
+//      ),
+//    );
+//  }
+//}
 
 
 class ScheduleDetail extends StatefulWidget {
-  int id;
+  int id = 1;
   ScheduleDetail(int id){
     this.id = id;
   }
@@ -218,90 +216,87 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: SingleChildScrollView(
-        child:Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(6.0),
-            child:
-              Text(_title, style: TextStyle(fontSize:30, fontWeight: FontWeight.bold)),
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: Text("詳細"),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.delete_forever),
+            onPressed: (){
+              showDeleteCheckDialog(context);
+            },
           ),
-          Padding(
-            padding: EdgeInsets.all(10.0),
-            child:Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildDate(_startDate),
-                Padding(
-                    padding: EdgeInsets.all(10.0),
-                  child:Text("〜", style: TextStyle(fontSize: 30))
-                ),
-                _buildDate(_endDate),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Divider(
-              color: Colors.grey,
-            ),
-          ),
-          Column(
-            children: [
-              _buildListView(),
-              Container(
-                width: double.infinity,
-                child: GestureDetector(
-                  onTap: () {
-                    print("debug click");
-                    bool _allDayFlagBool;
-                    bool _repetitionFlagBool;
-                    bool _notificationFlagBool;
-                    if(_allDayFlag == 0){
-                      _allDayFlagBool = false;
-                    }else{
-                      _allDayFlagBool = true;
-                    }
-                    if(_allDayFlag == 0){
-                      _repetitionFlagBool = false;
-                    }else{
-                      _repetitionFlagBool = true;
-                    }
-                    if(_allDayFlag == 0){
-                      _notificationFlagBool = false;
-                    }else{
-                      _notificationFlagBool = true;
-                    }
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
-                        )
-                    );
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Text("編集", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
-                  ),
-                ),
-              ),
-              Container(
-                width: double.infinity,
-                child: GestureDetector(
-                  onTap: () {
-                    showDeleteCheckDialog(context);
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(10.0),
-                    child: Text("削除", style: TextStyle(color: Colors.blue), textAlign: TextAlign.right,),
-                  ),
-                ),
-              )
-            ],
-          ),
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: (){
+              print("debug click");
+              bool _allDayFlagBool;
+              bool _repetitionFlagBool;
+              bool _notificationFlagBool;
+              if(_allDayFlag == 0){
+                _allDayFlagBool = false;
+              }else{
+                _allDayFlagBool = true;
+              }
+              if(_allDayFlag == 0){
+                _repetitionFlagBool = false;
+              }else{
+                _repetitionFlagBool = true;
+              }
+              if(_allDayFlag == 0){
+                _notificationFlagBool = false;
+              }else{
+                _notificationFlagBool = true;
+              }
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
+                  )
+              );
+            },
+          )
         ],
-      )
+      ),
+      body: Container(
+        child: SingleChildScrollView(
+            child:Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(6.0),
+                  child:
+                  Text(_title, style: TextStyle(fontSize:30, fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child:Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildDate(_startDate),
+                      Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child:Text("〜", style: TextStyle(fontSize: 30))
+                      ),
+                      _buildDate(_endDate),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(10.0),
+                  child: Divider(
+                    color: Colors.grey,
+                  ),
+                ),
+                Column(
+                  children: [
+                    _buildListView(),
+                  ],
+                ),
+              ],
+            )
+        ),
       ),
     );
   }

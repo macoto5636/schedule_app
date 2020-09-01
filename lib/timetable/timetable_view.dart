@@ -373,7 +373,7 @@ class _TimeTableViewState extends State<TimeTableView>{
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          return ScheduleDetailPage(id);
+          return ScheduleDetail(id);
         },
       ),
     );

@@ -674,12 +674,12 @@ class _TodoMainState extends State<TodoMain> {
                     labelText: "タスク名",
                     errorText: hasInputError ? "文字数が超えています" : null,
                   ),
-                  onChanged: (value){
-                    hasInputError = value.length <= 20;
-                    setState(() {
-                      _taskNameController.text = value;
-                    });
-                  },
+//                  onChanged: (value){
+//                    hasInputError = value.length <= 20;
+//                    setState(() {
+//                      _taskNameController.text = value;
+//                    });
+//                  },
                 ),
               ),
 //              ListTile(

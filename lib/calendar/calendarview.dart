@@ -623,7 +623,7 @@ class _CalendarState extends State<CalendarView>{
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) {
-          return ScheduleDetailPage(id);
+          return ScheduleDetail(id);
         },
       ),
     );
