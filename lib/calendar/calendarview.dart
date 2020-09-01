@@ -399,12 +399,17 @@ class _CalendarState extends State<CalendarView>{
               WidgetSpan(
                   child: GestureDetector(
                     onTap: (){
+                      Navigator.of(context).pop();
                       Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => ScheduleEditPage(data: null,dateTime: _selectDate,),
                           )
-                      );
+                      ).then((value){
+                        setState(() {
+                          getSchedules();
+                        });
+                      });
                     },
                     child: Container(
                       margin: EdgeInsets.only(left: 67.0),
@@ -626,7 +631,11 @@ class _CalendarState extends State<CalendarView>{
           return ScheduleDetail(id);
         },
       ),
-    );
+    ).then((value){
+      setState(() {
+        getSchedules();
+      });
+    });
   }
 
   //日記詳細
@@ -645,7 +654,12 @@ class _CalendarState extends State<CalendarView>{
         MaterialPageRoute(
           builder: (context) => TodoMainPage(),
         )
-    );
+    ).then((value){
+      Navigator.of(context).pop();
+      setState(() {
+        getSchedules();
+      });
+    });
   }
 
   //今月の位置に戻るボタン押したとき

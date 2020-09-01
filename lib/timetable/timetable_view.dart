@@ -108,6 +108,7 @@ class _TimeTableViewState extends State<TimeTableView>{
 
   //現在の日付の予定取得
   void _getSchedules() async{
+    _schedules.clear();
     List<int> schedulesId = [];
     List<String> schedulesTitle = [];
     List<bool> schedulesAllDay = [];
@@ -376,7 +377,11 @@ class _TimeTableViewState extends State<TimeTableView>{
           return ScheduleDetail(id);
         },
       ),
-    );
+    ).then((value){
+      setState(() {
+        _getSchedules();
+      });
+    });
   }
 
   //日記詳細
@@ -385,7 +390,11 @@ class _TimeTableViewState extends State<TimeTableView>{
         MaterialPageRoute(
           builder: (context) => DiaryDetailOnlyPage(diaryList,index),
         )
-    );
+    ).then((value){
+      setState(() {
+        _getSchedules();
+      });
+    });
   }
 
   //Todo一覧
@@ -394,7 +403,11 @@ class _TimeTableViewState extends State<TimeTableView>{
         MaterialPageRoute(
           builder: (context) => TodoMainPage(),
         )
-    );
+    ).then((value){
+      setState(() {
+        _getSchedules();
+      });
+    });
   }
 
   Widget _buildTitle(){
