@@ -177,14 +177,20 @@ class _MyHomePageState extends State<MyHomePage> {
   //BottomNavigationBarタップ時
   //真ん中の追加だけタップしても何も起きないようにしている（必要かはわからん
   void _onItemTapped(int index){
-    if(index != 1){
-      setState((){
-        _currentTabIndex = index;
-      });
-    }
+//    if(index != 1){
+//      setState((){
+//        _currentTabIndex = index;
+//      });
+//    }
     if(index == 0){
       setState(() {
-        setCurrentDate("設定");
+       //既に設定を開いている時
+       if(_currentTabIndex == 0){
+         _currentTabIndex = 2;
+       }else{
+         setCurrentDate("設定");
+         _currentTabIndex = index;
+       }
       });
 //      Navigator.push(
 //          context,
@@ -199,6 +205,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
       setState(() {
         currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
+        _currentTabIndex = index;
       });
     }
 
