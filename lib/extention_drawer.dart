@@ -275,13 +275,15 @@ void moveExtensionSubPages(BuildContext context,int id,callback) async{
       )
     );
       callback(true); break;
-    case 2 : Navigator.of(context).push(
+    case 2 : await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context){
             return TodoMainPage();
           },
         )
     );
+      callback(true);
+      break;
   }
 }
 

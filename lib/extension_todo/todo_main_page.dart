@@ -139,12 +139,16 @@ class _TodoMainState extends State<TodoMain> {
       "id" : int.parse(res.body),
       "task_name" : taskName,
       "date" : widget.todayFlag == 0 ? null : formatPost.format(currentDate),
+      "status" : 0,
       "calendar_id" :calendarId,
       "created_at" : DateTime.now(),
       "updated_at" : DateTime.now(),
     });
 
+
     _listKey.currentState.insertItem(_falseTasks.length -1);
+
+
   }
 
   void _changeState(int id, String taskName, bool status, DateTime date) async{
@@ -721,6 +725,9 @@ class _TodoMainState extends State<TodoMain> {
               onPressed: (){
                 _addTodo(_taskNameController.text, null);
                 Navigator.pop(context);
+                setState(() {
+
+                });
               },
             )
           ],
