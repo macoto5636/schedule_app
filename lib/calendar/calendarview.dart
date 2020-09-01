@@ -110,11 +110,11 @@ class _CalendarState extends State<CalendarView>{
   void getSchedules() async{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
+    _schedules.clear();
 
     http.Response response = await Network().getData("calendar/" + selectedCalendarId.toString());
     print(response);
-    await http.get(response).then((response){
-      print("Response status: ${response.statusCode}");
+
 //      print("Response body: ${response.body}");
       List list = json.decode(response.body);
 
@@ -170,7 +170,6 @@ class _CalendarState extends State<CalendarView>{
           getPlugin();
         });
       }
-    });
     print("schedule end");
   }
 
