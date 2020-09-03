@@ -36,7 +36,7 @@ dependencies:
   provider: ^4.3.0
   flutter_slidable: ^0.5.5
   image_picker: ^0.6.7+4
-
+  flutter_dotenv: ^2.1.0
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +69,7 @@ flutter:
     - images/flutter-logo.png
     - images/schedule_app_icon.png
     - images/schedule_app_icon1.png
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

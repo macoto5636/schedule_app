@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:scheduleapp/extension/extension_details.dart';
@@ -58,7 +59,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
       'Authorization': "Bearer $token"
     };
 
-    final String url = "http://10.0.2.2:8000/api/extension/addlist/$calendarId";
+    final String url = "http://${DotEnv().env['API_ADDRESS']}/api/extension/addlist/$calendarId";
     http.Response response = await http.get(
         url,
         headers: requestHeaders

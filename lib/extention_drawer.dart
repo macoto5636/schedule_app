@@ -146,7 +146,7 @@ class _ExtensionListViewState extends State<ExtensionListView> {
     haveExtensions.clear();
 
     extensions.forEach((element) {
-      if(element["flag"] || !extensionFlag){
+      if(element["flag"]){
         extensionFlag = true;
       }
 
