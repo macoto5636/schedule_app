@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Container(
         child: Center(
-          child: Image.asset('images/flutter-logo.png')
+          child: Image.asset('images/schedule_app_icon1.png')
         ),
       )
     );
@@ -60,7 +60,7 @@ class FirstBootPage extends StatelessWidget {
             children: <Widget>[
              Container(
                 padding: EdgeInsets.all(60),
-                 child: Image.asset('images/flutter-logo.png')
+                 child: Image.asset('images/schedule_app_icon1.png')
              ),
               Text(
                 "カレンダー＋",

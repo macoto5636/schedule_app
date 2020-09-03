@@ -145,9 +145,7 @@ class _TodoMainState extends State<TodoMain> {
       "updated_at" : DateTime.now(),
     });
 
-
-    _listKey.currentState.insertItem(_falseTasks.length -1);
-
+    await _listKey.currentState.insertItem(0);
 
   }
 
