@@ -76,6 +76,7 @@ class _TodoMainState extends State<TodoMain> {
   }
 
   Future<bool> _getTask() async{
+    print("get Task");
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     calendarId = jsonDecode(localStorage.getString('calendar'))["id"];
 
@@ -135,18 +136,17 @@ class _TodoMainState extends State<TodoMain> {
     http.Response res = await Network().postData(data, "todo/store");
     print("result" + res.body.toString());
 
-    _falseTasks.add({
-      "id" : int.parse(res.body),
-      "task_name" : taskName,
-      "date" : widget.todayFlag == 0 ? null : formatPost.format(currentDate),
-      "status" : 0,
-      "calendar_id" :calendarId,
-      "created_at" : DateTime.now(),
-      "updated_at" : DateTime.now(),
-    });
-
-    await _listKey.currentState.insertItem(0);
-
+//    _falseTasks.add({
+//      "id" : int.parse(res.body),
+//      "task_name" : taskName,
+//      "date" : widget.todayFlag == 0 ? null : formatPost.format(currentDate),
+//      "status" : 0,
+//      "calendar_id" :calendarId,
+//      "created_at" : DateTime.now(),
+//      "updated_at" : DateTime.now(),
+//    });
+//
+//    _listKey.currentState.insertItem(0);
   }
 
   void _changeState(int id, String taskName, bool status, DateTime date) async{
@@ -273,7 +273,7 @@ class _TodoMainState extends State<TodoMain> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: widget.todayFlag == 0 ? "タスクはありません\n" : "今日のタスクはありません\n",
+                                text: widget.todayFlag != 1 ? "タスクはありません\n" : "今日のタスクはありません\n",
                                 style: Theme.of(context).textTheme.bodyText1,
                               ),
                               WidgetSpan(
