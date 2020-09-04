@@ -189,6 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
        //既に設定を開いている時
        if(_currentTabIndex == 0){
+         currentDate = DateTime.now().year.toString() + "年" + DateTime.now().month.toString() + "月";
          _currentTabIndex = 2;
        }else{
          setCurrentDate("設定");
