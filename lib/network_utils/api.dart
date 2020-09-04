@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Network{
 // アンドロイドエミュレーターの場合10.0.2.2:8000を使用
-  final String _url = 'http://10.0.2.2:8000/api/';
+  final String _url = 'http://${DotEnv().env['API_ADDRESS']}/api/';
 
   static var token;
 
@@ -21,7 +22,7 @@ class Network{
   get getMultiHeaders => _multiHeaders();
 
   String imagesDirectory(selectImageDirectory){
-    var url = 'http://10.0.2.2:8000/storage/' + selectImageDirectory + '/';
+    var url = 'http://${DotEnv().env['API_ADDRESS']}/storage/' + selectImageDirectory + '/';
     return url;
   }
 

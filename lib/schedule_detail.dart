@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
@@ -90,7 +91,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   /// 値を取得
   ///
   void getScheduleDetail(int id) async{
-    var url = "http://10.0.2.2:8000/api/schedules/" + id.toString();
+    var url = "http://${DotEnv().env['API_ADDRESS']}/api/schedules/" + id.toString();
     print(url);
     await http.get(url).then((response) {
       print("Response status: ${response.statusCode}");

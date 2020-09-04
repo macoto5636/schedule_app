@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -108,7 +109,7 @@ class ExtensionDetailsPage extends StatelessWidget {
   }
 
   Future postData(json) async{
-    final _url = "http://10.0.2.2:8000/api/extension/calexadd";
+    final _url = "http://${DotEnv().env['API_ADDRESS']}/api/extension/calexadd";
 
 //     ローカルストレージに保存している認証トークンを取り出している
     SharedPreferences localStorage = await SharedPreferences.getInstance();

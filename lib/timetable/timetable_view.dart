@@ -1,6 +1,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:scheduleapp/extension_diary/diary_detail_only_page.dart';
 import 'package:scheduleapp/extension_todo/todo_main_page.dart';
 
@@ -119,7 +120,7 @@ class _TimeTableViewState extends State<TimeTableView>{
     SharedPreferences localStorage = await SharedPreferences.getInstance();
     var selectedCalendarId = jsonDecode(localStorage.getString('calendar'))["id"];
 
-    var url = "http://10.0.2.2:8000/api/calendar/" + selectedCalendarId.toString();
+    var url = "http://${DotEnv().env['API_ADDRESS']}/api/calendar/" + selectedCalendarId.toString();
     print(url);
     await http.get(url).then((response) {
       print("Response status: ${response.statusCode}");

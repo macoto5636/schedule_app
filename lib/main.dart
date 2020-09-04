@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 import 'package:scheduleapp/app_theme.dart';
@@ -22,8 +23,9 @@ import 'package:scheduleapp/schedule_add/schedule_add_color_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  await DotEnv().load('.env');
   SharedPreferences.getInstance().then((prefs) {
     var themeKey = prefs.getString("theme_key") ?? "themeLightBlue";
     runApp(
