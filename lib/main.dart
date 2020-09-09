@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
       title: 'schedule_app',
+      debugShowCheckedModeBanner: false,
       theme: themeNotifier.getTheme(),
         home: SplashScreen(),
     );
