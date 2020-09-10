@@ -125,7 +125,7 @@ class NoticeText extends StatelessWidget {
       width: 200,
 //      padding: new EdgeInsets.all(5.0),
       child: DefaultTextStyle(
-        style: TextStyle(color: Colors.black),
+        style: TextStyle(),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
         child: Text(
