@@ -70,7 +70,7 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
           ),
         ),
         Container(
-          padding: EdgeInsets.only(left: 10,bottom: 5),
+          padding: EdgeInsets.only(left: 10,top: 5,bottom: 5),
           child: Text('$name  さん',style: TextStyle(fontSize: 20),),
         ),
         Divider(
