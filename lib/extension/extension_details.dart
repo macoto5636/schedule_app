@@ -69,22 +69,26 @@ class ExtensionDetailsPage extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              margin: EdgeInsets.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(
-                      child: Text("カテゴリ： *******")
-                  ),
-                ],
-              ),
-            ),
+//            Container(
+//              margin: EdgeInsets.only(top: 20),
+//              child: Row(
+//                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                children: <Widget>[
+//                  Container(
+//                      child: Text("カテゴリ： *******")
+//                  ),
+//                ],
+//              ),
+//            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
-                    child: Text(details["explanation"])
+                  margin: EdgeInsets.only(top: 20),
+                    child: Text(
+                        details["explanation"],
+                        style: TextStyle(fontSize: 20),
+                    )
                 ),
               ],
             )

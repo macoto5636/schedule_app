@@ -15,12 +15,20 @@ class CalendarChangePage extends StatefulWidget {
 class _CalendarChangePageState extends State<CalendarChangePage> {
   var _rebuildFlag;
   var selectedCalendar;
+  var editId;
+  TextEditingController _controller;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _rebuildFlag = false;
+    _controller = TextEditingController();
+  }
+
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   callback(){
@@ -58,7 +66,7 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
                         ),
                           child: ListTile(
                             leading: checkIcon(_calendars[index]["id"]),
-                            title: Text(_calendars[index]["cal_name"]),
+                            title: nameField(_calendars[index]),
                             onTap: () => changeSelectedCalendar(_calendars[index]),
                             trailing: PopupMenuButton(
                               itemBuilder: (BuildContext context) => <PopupMenuEntry>[
@@ -76,7 +84,7 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
                                     leading: Icon(Icons.delete),
                                     title: Text("名前の編集"),
                                     onTap:(){
-                                      _editCalendarName();
+                                      _editCalendarDialog(_calendars[index]);
                                     }
                                   ),
                                 ),
@@ -93,6 +101,18 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
           )
       ),
     );
+  }
+
+  Widget nameField(data){
+    if(data["id"] == editId){
+      _controller.text = data["cal_name"];
+      return TextField(
+        controller: _controller,
+        decoration: null,
+      );
+    }else{
+      return Text(data["cal_name"]);
+    }
   }
 
   ///ユーザーが現在選択しているカレンダー情報をローカルストレージから取得する
@@ -140,6 +160,7 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
                   key: _formKey,
                   child: TextFormField(
                     autofocus: true,
+                    maxLength: 20,
                     decoration: InputDecoration(
                       hintText: "カレンダー名",
                     ),
@@ -189,7 +210,6 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
 
   _deleteCalendar(id) async{
     if(id == selectedCalendar["id"]) {
-      print("消せない！！");
       Navigator.of(context).pop();
       Fluttertoast.showToast(
         msg: '選択中のカレンダーは削除できません',
@@ -201,8 +221,70 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
     callback();
   }
 
-  _editCalendarName() async{
+  ///カレンダー名を変更するためのダイアログ形式のフォーム
+  _editCalendarDialog(data){
+    final _formKey = GlobalKey<FormState>();
+    var editCalendarName;
+    showDialog(
+        context: context,
+        builder: (BuildContext context) =>
+            AlertDialog(
+              title: Text("カレンダー名の編集"),
+              content: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Form(
+                      key: _formKey,
+                      child: TextFormField(
+                        initialValue: data["cal_name"],
+                        autofocus: true,
+                        maxLength: 20,
+                        decoration: InputDecoration(
+                          hintText: "カレンダー名",
+                        ),
+                        validator: (calendarName){
+                          if(calendarName.isEmpty){
+                            return "カレンダー名が入力されていません";
+                          }
+                          editCalendarName = calendarName;
+                          return null;
+                        },
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("キャンセル"),
+                  onPressed: (){
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                ),
+                FlatButton(
+                  child: Text("変更する"),
+                  onPressed: (){
+                    if(_formKey.currentState.validate()){
+                      _editCalendarName(data["id"],editCalendarName);
+                    }
+                  },
+                )
+              ],
+            )
+    );
+  }
+
+  _editCalendarName(id,editCalendarName) async{
     print("edit Calendar");
+
+    final data = {
+      "editCalendarName" : editCalendarName
+    };
+    await Network().postData(data,"calendar/edit/${id}");
+
     Navigator.of(context).pop();
+    Navigator.of(context).pop();
+    callback();
   }
 }
