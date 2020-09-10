@@ -51,7 +51,6 @@ class ExtensionDetailsPage extends StatelessWidget {
                             "追加",
                             style: TextStyle(color: Colors.white,fontSize: 20),
                           ),
-                          color: Colors.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
@@ -61,8 +60,6 @@ class ExtensionDetailsPage extends StatelessWidget {
                             Navigator.pop(context);
                             Fluttertoast.showToast(
                               msg: "「${details["ex_name"]}」を追加しました",
-                              backgroundColor: Colors.blue,
-                              textColor: Colors.white,
                             );
                           },
                         ),
