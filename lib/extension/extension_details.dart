@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:scheduleapp/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -47,6 +48,7 @@ class ExtensionDetailsPage extends StatelessWidget {
                         height: 50,
                         child: details["flag"] ? Center(child: Text("追加済み"))
                             : RaisedButton(
+                          color: getPrimaryColor(context),
                           child: Text(
                             "追加",
                             style: TextStyle(color: Colors.white,fontSize: 20),

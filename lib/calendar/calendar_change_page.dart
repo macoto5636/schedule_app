@@ -208,7 +208,7 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
     callback();
   }
 
-  _deleteCalendar(id) async{
+  _deleteCalendar(id){
     if(id == selectedCalendar["id"]) {
       Navigator.of(context).pop();
       Fluttertoast.showToast(
@@ -216,9 +216,34 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
       );
       return;
     }
-    Navigator.of(context).pop();
-    await Network().getData("calendar/delete/${id}");
-    callback();
+
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: Text("本当に削除してよろしいですか？"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("キャンセル"),
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                child: Text("OK"),
+                onPressed: () async{
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                  await Network().getData("calendar/delete/${id}");
+                  callback();
+                },
+              )
+            ],
+          );
+        }
+    );
+
+
   }
 
   ///カレンダー名を変更するためのダイアログ形式のフォーム
