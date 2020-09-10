@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduleapp/network_utils/api.dart';
@@ -59,6 +60,28 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
                             leading: checkIcon(_calendars[index]["id"]),
                             title: Text(_calendars[index]["cal_name"]),
                             onTap: () => changeSelectedCalendar(_calendars[index]),
+                            trailing: PopupMenuButton(
+                              itemBuilder: (BuildContext context) => <PopupMenuEntry>[
+                                PopupMenuItem(
+                                  child: ListTile(
+                                    leading: Icon(Icons.delete),
+                                    title: Text("削除"),
+                                    onTap:(){
+                                      _deleteCalendar(_calendars[index]["id"]);
+                                    }
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  child: ListTile(
+                                    leading: Icon(Icons.delete),
+                                    title: Text("名前の編集"),
+                                    onTap:(){
+                                      _editCalendarName();
+                                    }
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                       );
                     }
@@ -153,7 +176,6 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
   ///新規カレンダー作成処理
   ///カレンダー名[value]を受け取りカレンダーテーブルに保存する
   ///作成後callback呼び出して一覧を更新する
-
   _createCalendar(value) async{
     final data = {
       "cal_name" : value
@@ -163,5 +185,24 @@ class _CalendarChangePageState extends State<CalendarChangePage> {
 
     Navigator.pop(context);
     callback();
+  }
+
+  _deleteCalendar(id) async{
+    if(id == selectedCalendar["id"]) {
+      print("消せない！！");
+      Navigator.of(context).pop();
+      Fluttertoast.showToast(
+        msg: '選択中のカレンダーは削除できません',
+      );
+      return;
+    }
+    Navigator.of(context).pop();
+    await Network().getData("calendar/delete/${id}");
+    callback();
+  }
+
+  _editCalendarName() async{
+    print("edit Calendar");
+    Navigator.of(context).pop();
   }
 }
