@@ -73,6 +73,9 @@ class _ExtensionDrawerState extends State<ExtensionDrawer> {
           padding: EdgeInsets.only(left: 10,bottom: 5),
           child: Text('$name  さん',style: TextStyle(fontSize: 20),),
         ),
+        Divider(
+          color: Colors.grey[500],
+        ),
         ExtensionListView(callback: widget.callback,),
         authButton(),
       ],
@@ -174,23 +177,24 @@ class _ExtensionListViewState extends State<ExtensionListView> {
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context, int index){
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: Colors.grey[300]),
-                            bottom: BorderSide(color: Colors.grey[300])
-                          )
-                        ),
-                        child: ListTile(
-                          title: Text(
-                            haveExtensions[index]["ex_name"],
-                            style: TextStyle(fontSize: 20),
+                      return Column(
+                        children: [
+                          Container(
+                            child: ListTile(
+                              title: Text(
+                                haveExtensions[index]["ex_name"],
+                                style: TextStyle(fontSize: 20),
+                              ),
+                              trailing: Icon(Icons.arrow_forward_ios),
+                              onTap: (){
+                                moveExtensionSubPages(context,haveExtensions[index]["id"],widget.callback);
+                              },
+                            ),
                           ),
-                          trailing: Icon(Icons.arrow_forward_ios),
-                          onTap: (){
-                            moveExtensionSubPages(context,haveExtensions[index]["id"],widget.callback);
-                          },
-                        ),
+                          Divider(
+                            color: Colors.grey[500],
+                          ),
+                        ],
                       );
                     },
                     itemCount: haveExtensions.length,
@@ -221,16 +225,19 @@ Widget noExtensionView(BuildContext context){
         child: Column(
           children: <Widget>[
             Text('拡張機能が追加されていません'),
-            FlatButton(
-              color: Theme.of(context).primaryColor,
-              textColor: Colors.white,
-              padding: EdgeInsets.all(8.0),
-              onPressed: () {
-                moveExtentionAddPage(context);
-                },
-              child: Text(
-                "拡張機能を追加する",
-                style: TextStyle(fontSize: 15.0),
+            Container(
+              margin: EdgeInsets.only(top: 8.0),
+              child: FlatButton(
+                color: Theme.of(context).primaryColor,
+                textColor: Colors.white,
+                padding: EdgeInsets.all(16.0),
+                onPressed: () {
+                  moveExtentionAddPage(context);
+                  },
+                child: Text(
+                  "拡張機能を追加する",
+                  style: TextStyle(fontSize: 16.0),
+                ),
               ),
             )
           ],
