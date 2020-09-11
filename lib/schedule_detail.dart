@@ -85,7 +85,7 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   void initState() {
     super.initState();
 //    getScheduleDetail(widget.id);
-    _futures = getScheduleDetail(widget.id);
+    getScheduleDetail(widget.id);
   }
 
   ///
@@ -159,21 +159,27 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   List<Widget> _buildListColumn(){
     List<Widget> list = [];
 
-    if(_place != null){
-      list.add(
+    if(_place == null){
+      _place = "なし";
+    }
+    if(_urlSchedule == null){
+      _urlSchedule = "なし";
+    }
+    if(_memo == null){
+      _memo = "なし";
+    }
+
+    list.add(
         _buildListItem(Icons.location_on, _place)
-      );
-    }
-    if(_urlSchedule != null){
-      list.add(
+    );
+
+    list.add(
         _buildListItem(Icons.link, _urlSchedule)
-      );
-    }
-    if(_memo != null){
-      list.add(
+    );
+
+    list.add(
         _buildListItem(Icons.subject, _memo)
-      );
-    }
+    );
     //場所、URL、メモのいずれかがあるときだけ線を引く
     if(list.length > 0){
       list.add(
@@ -220,105 +226,89 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _futures,
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
-        if (snapshot.hasData) {
-          if(snapshot.data) {
-            return Scaffold(
-              appBar: AppBar(
-                centerTitle: true,
-                title: Text("詳細"),
-                actions: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.delete_forever),
-                    onPressed: (){
-                      showDeleteCheckDialog(context);
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: (){
-                      print("debug click");
-                      bool _allDayFlagBool;
-                      bool _repetitionFlagBool;
-                      bool _notificationFlagBool;
-                      if(_allDayFlag == 0){
-                        _allDayFlagBool = false;
-                      }else{
-                        _allDayFlagBool = true;
-                      }
-                      if(_allDayFlag == 0){
-                        _repetitionFlagBool = false;
-                      }else{
-                        _repetitionFlagBool = true;
-                      }
-                      if(_allDayFlag == 0){
-                        _notificationFlagBool = false;
-                      }else{
-                        _notificationFlagBool = true;
-                      }
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
-                          )
-                      );
-                    },
-                  )
-                ],
-              ),
-              body: Container(
-                child: SingleChildScrollView(
-                    child:Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.all(6.0),
-                          child:
-                          Text(_title, style: TextStyle(fontSize:30, fontWeight: FontWeight.bold)),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child:Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildDate(_startDate),
-                              Padding(
-                                  padding: EdgeInsets.all(10.0),
-                                  child:Text("〜", style: TextStyle(fontSize: 30))
-                              ),
-                              _buildDate(_endDate),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(10.0),
-                          child: Divider(
-                            color: Colors.grey,
-                          ),
-                        ),
-                        Column(
-                          children: [
-                            _buildListView(),
-                          ],
-                        ),
-                      ],
+    return Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: Text("詳細"),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.delete_forever),
+              onPressed: (){
+                showDeleteCheckDialog(context);
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: (){
+                print("debug click");
+                bool _allDayFlagBool;
+                bool _repetitionFlagBool;
+                bool _notificationFlagBool;
+                if(_allDayFlag == 0){
+                  _allDayFlagBool = false;
+                }else{
+                  _allDayFlagBool = true;
+                }
+                if(_allDayFlag == 0){
+                  _repetitionFlagBool = false;
+                }else{
+                  _repetitionFlagBool = true;
+                }
+                if(_allDayFlag == 0){
+                  _notificationFlagBool = false;
+                }else{
+                  _notificationFlagBool = true;
+                }
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
                     )
-                ),
-              ),
-            );
-          }else{
-            return Container();
-          }
-        }else{
-          //処理待ち
-          return Center(
-              child: CircularProgressIndicator()
-          );
-        }
-    }
-    );
+                );
+              },
+            )
+          ],
+        ),
+        body: Container(
+          child: SingleChildScrollView(
+              child:Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(6.0),
+                    child:
+                    Text(_title, style: TextStyle(fontSize:30, fontWeight: FontWeight.bold)),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child:Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildDate(_startDate),
+                        Padding(
+                            padding: EdgeInsets.all(10.0),
+                            child:Text("〜", style: TextStyle(fontSize: 30))
+                        ),
+                        _buildDate(_endDate),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Divider(
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      _buildListView(),
+                    ],
+                  ),
+                ],
+              )
+          ),
+        ),
+      );
   }
 
   // 削除確認ダイアログを表示の上、削除する
