@@ -115,6 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 //        backgroundColor: getPrimaryColor(context),
         centerTitle: true,
         title: Text(currentDate),
+//        backgroundColor: getPrimaryColor(context),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.view_carousel),

@@ -79,18 +79,19 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
   Map data;
 
   var iconSIze = 25.0;
+  Future<bool> _futures;
   
   @override
   void initState() {
     super.initState();
-    getScheduleDetail(widget.id);
-
+//    getScheduleDetail(widget.id);
+    _futures = getScheduleDetail(widget.id);
   }
 
   ///
   /// 値を取得
   ///
-  void getScheduleDetail(int id) async{
+  Future<bool> getScheduleDetail(int id) async{
     var url = "http://${DotEnv().env['API_ADDRESS']}/api/schedules/" + id.toString();
     print(url);
     await http.get(url).then((response) {
@@ -118,6 +119,8 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
         });
       }
     });
+
+    return true;
    }
 
 
@@ -217,88 +220,104 @@ class _ScheduleDetailState extends State<ScheduleDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text("詳細"),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.delete_forever),
-            onPressed: (){
-              showDeleteCheckDialog(context);
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: (){
-              print("debug click");
-              bool _allDayFlagBool;
-              bool _repetitionFlagBool;
-              bool _notificationFlagBool;
-              if(_allDayFlag == 0){
-                _allDayFlagBool = false;
-              }else{
-                _allDayFlagBool = true;
-              }
-              if(_allDayFlag == 0){
-                _repetitionFlagBool = false;
-              }else{
-                _repetitionFlagBool = true;
-              }
-              if(_allDayFlag == 0){
-                _notificationFlagBool = false;
-              }else{
-                _notificationFlagBool = true;
-              }
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
+    return FutureBuilder(
+      future: _futures,
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.hasData) {
+          if(snapshot.data) {
+            return Scaffold(
+              appBar: AppBar(
+                centerTitle: true,
+                title: Text("詳細"),
+                actions: <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.delete_forever),
+                    onPressed: (){
+                      showDeleteCheckDialog(context);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.edit),
+                    onPressed: (){
+                      print("debug click");
+                      bool _allDayFlagBool;
+                      bool _repetitionFlagBool;
+                      bool _notificationFlagBool;
+                      if(_allDayFlag == 0){
+                        _allDayFlagBool = false;
+                      }else{
+                        _allDayFlagBool = true;
+                      }
+                      if(_allDayFlag == 0){
+                        _repetitionFlagBool = false;
+                      }else{
+                        _repetitionFlagBool = true;
+                      }
+                      if(_allDayFlag == 0){
+                        _notificationFlagBool = false;
+                      }else{
+                        _notificationFlagBool = true;
+                      }
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ScheduleEditPage(data: data,dateTime: null,),
+                          )
+                      );
+                    },
                   )
-              );
-            },
-          )
-        ],
-      ),
-      body: Container(
-        child: SingleChildScrollView(
-            child:Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(6.0),
-                  child:
-                  Text(_title, style: TextStyle(fontSize:30, fontWeight: FontWeight.bold)),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child:Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildDate(_startDate),
-                      Padding(
+                ],
+              ),
+              body: Container(
+                child: SingleChildScrollView(
+                    child:Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(6.0),
+                          child:
+                          Text(_title, style: TextStyle(fontSize:30, fontWeight: FontWeight.bold)),
+                        ),
+                        Padding(
                           padding: EdgeInsets.all(10.0),
-                          child:Text("〜", style: TextStyle(fontSize: 30))
-                      ),
-                      _buildDate(_endDate),
-                    ],
-                  ),
+                          child:Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildDate(_startDate),
+                              Padding(
+                                  padding: EdgeInsets.all(10.0),
+                                  child:Text("〜", style: TextStyle(fontSize: 30))
+                              ),
+                              _buildDate(_endDate),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Divider(
+                            color: Colors.grey,
+                          ),
+                        ),
+                        Column(
+                          children: [
+                            _buildListView(),
+                          ],
+                        ),
+                      ],
+                    )
                 ),
-                Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Divider(
-                    color: Colors.grey,
-                  ),
-                ),
-                Column(
-                  children: [
-                    _buildListView(),
-                  ],
-                ),
-              ],
-            )
-        ),
-      ),
+              ),
+            );
+          }else{
+            return Container();
+          }
+        }else{
+          //処理待ち
+          return Center(
+              child: CircularProgressIndicator()
+          );
+        }
+    }
     );
   }
 

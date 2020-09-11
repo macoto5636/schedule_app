@@ -228,7 +228,7 @@ Widget noExtensionView(BuildContext context){
             Container(
               margin: EdgeInsets.only(top: 8.0),
               child: FlatButton(
-                color: Theme.of(context).primaryColor,
+                color: getPrimaryColor(context),
                 textColor: Colors.white,
                 padding: EdgeInsets.all(16.0),
                 onPressed: () {
