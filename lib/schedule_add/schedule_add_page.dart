@@ -20,7 +20,7 @@ class ScheduleEditPage extends  StatefulWidget{
     if(data == null){
       data = {
         "id":null,
-        "title" : "title",
+        "title" : "",
         "all_day" : false,
         "start_date" : DateTime.now(),
         "end_date" : DateTime.now().add(new Duration(hours: 1)),

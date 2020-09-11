@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
     final themeNotifier = Provider.of<ThemeNotifier>(context);
     return MaterialApp(
       title: 'schedule_app',
+      debugShowCheckedModeBanner: false,
       theme: themeNotifier.getTheme(),
         home: SplashScreen(),
     );
@@ -114,6 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 //        backgroundColor: getPrimaryColor(context),
         centerTitle: true,
         title: Text(currentDate),
+//        backgroundColor: getPrimaryColor(context),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.view_carousel),

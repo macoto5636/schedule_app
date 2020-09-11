@@ -70,6 +70,14 @@ class _TodoMainState extends State<TodoMain> {
 
   var _taskNameController = TextEditingController(text: "");
 
+  //コールバック関数
+  bool rebuild = true;
+  void callback(){
+    setState(() {
+      rebuild = !rebuild;
+    });
+  }
+
   @override
   void initState() {
     super.initState();

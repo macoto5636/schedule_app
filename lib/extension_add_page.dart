@@ -69,6 +69,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
       extensionList = jsonDecode(response.body);
     });
   }
+  
   Widget ExtensionButton(list){
     var _widget;
     bool flag = list["flag"];
@@ -82,7 +83,7 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
           icon: Icon(Icons.add),
           iconSize: 40.0,
           onPressed: (){
-
+            moveExtensionDetailsPage(list);
           },
       );
     }
@@ -99,16 +100,20 @@ class _ExtensionAllListState extends State<ExtensionAllList> {
               title: Text(extensionList[index]["ex_name"]),
               subtitle: Text(extensionList[index]["explanation"]),
               trailing: ExtensionButton(extensionList[index]),
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ExtensionDetailsPage(details: extensionList[index])
-                  )
-              )
+              onTap: () => moveExtensionDetailsPage(extensionList[index])
             );
           },
         itemCount: extensionList.length,
       ),
+    );
+  }
+  
+  moveExtensionDetailsPage(item){
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ExtensionDetailsPage(details: item)
+        )
     );
   }
 }

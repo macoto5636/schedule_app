@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:scheduleapp/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -47,11 +48,11 @@ class ExtensionDetailsPage extends StatelessWidget {
                         height: 50,
                         child: details["flag"] ? Center(child: Text("追加済み"))
                             : RaisedButton(
+                          color: getPrimaryColor(context),
                           child: Text(
                             "追加",
                             style: TextStyle(color: Colors.white,fontSize: 20),
                           ),
-                          color: Colors.blue,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           ),
@@ -61,8 +62,6 @@ class ExtensionDetailsPage extends StatelessWidget {
                             Navigator.pop(context);
                             Fluttertoast.showToast(
                               msg: "「${details["ex_name"]}」を追加しました",
-                              backgroundColor: Colors.blue,
-                              textColor: Colors.white,
                             );
                           },
                         ),
@@ -72,22 +71,26 @@ class ExtensionDetailsPage extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              margin: EdgeInsets.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Container(
-                      child: Text("カテゴリ： *******")
-                  ),
-                ],
-              ),
-            ),
+//            Container(
+//              margin: EdgeInsets.only(top: 20),
+//              child: Row(
+//                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                children: <Widget>[
+//                  Container(
+//                      child: Text("カテゴリ： *******")
+//                  ),
+//                ],
+//              ),
+//            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Container(
-                    child: Text(details["explanation"])
+                  margin: EdgeInsets.only(top: 20),
+                    child: Text(
+                        details["explanation"],
+                        style: TextStyle(fontSize: 20),
+                    )
                 ),
               ],
             )
